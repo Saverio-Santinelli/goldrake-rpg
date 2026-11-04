@@ -42,4 +42,14 @@ public class Combattente {
     public int getPuntiVita() {
         return puntiVita;
     }
+    public void subisciDanno(int danno) {
+        if (danno < 0) {
+            throw new IllegalArgumentException("Il danno non può essere negativo");
+        }
+        puntiVita = Math.max(0, puntiVita - danno);
+    }
+
+    public boolean isSconfitto() {
+        return puntiVita == 0;
+    }
 }
