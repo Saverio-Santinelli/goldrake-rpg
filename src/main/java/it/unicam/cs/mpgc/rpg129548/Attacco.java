@@ -47,4 +47,33 @@ public class Attacco {
     public int getCostoEnergia() {
         return costoEnergia;
     }
+    /**
+     * Esegue l'attacco consumando energia e danneggiando il bersaglio.
+     *
+     * @param attaccante combattente che esegue l'attacco
+     * @param bersaglio combattente che subisce il danno
+     * @return true se l'attacco viene eseguito, false se un combattente
+     *         è sconfitto o l'energia è insufficiente
+     * @throws IllegalArgumentException se un combattente è nullo
+     *         o il bersaglio coincide con l'attaccante
+     */
+    public boolean esegui(Combattente attaccante, Combattente bersaglio) {
+        if (attaccante == null || bersaglio == null) {
+            throw new IllegalArgumentException(
+                    "Attaccante e bersaglio devono essere presenti");
+        }
+        if (attaccante == bersaglio) {
+            throw new IllegalArgumentException(
+                    "Un combattente non può attaccare se stesso");
+        }
+        if (attaccante.isSconfitto() || bersaglio.isSconfitto()) {
+            return false;
+        }
+        if (!attaccante.consumaEnergia(costoEnergia)) {
+            return false;
+        }
+
+        bersaglio.subisciDanno(danno);
+        return true;
+    }
 }
