@@ -5,12 +5,13 @@ import java.util.Scanner;
 public class DuelloConsole {
 
     public static void main(String[] args) {
-        Combattente goldrake = new Combattente("Goldrake", 100, 30);
-        Combattente nemico = new Combattente("Mostro di Vega", 80, 10);
-        Combattimento duello = new Combattimento(goldrake, nemico);
-        Attacco pugno = new Attacco("Pugno", 10, 0);
-        Attacco raggio = new Attacco("Raggio", 30, 20);
-        Attacco contrattacco = new Attacco("Artiglio", 15, 0);
+        DuelloGoldrake partita = new DuelloGoldrake();
+        Combattente goldrake = partita.goldrake;
+        Combattente nemico = partita.nemico;
+        Combattimento duello = partita.combattimento;
+        Attacco pugno = partita.pugno;
+        Attacco raggio = partita.raggio;
+        Attacco contrattacco = partita.artiglio;
 
         System.out.println("Goldrake RPG - Duello contro il Mostro di Vega");
         try (Scanner terminale = new Scanner(System.in)) {
