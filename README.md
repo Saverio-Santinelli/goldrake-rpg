@@ -12,8 +12,7 @@ Package di riferimento: `it.unicam.cs.mpgc.rpg129548`.
 
 ## Stato del progetto
 
-È stata predisposta la struttura iniziale con Gradle e Java 25.
-Le funzionalità di gioco, l’interfaccia grafica e la persistenza non sono ancora implementate.
+È disponibile un primo duello a turni dal terminale. Interfaccia grafica e persistenza sono in programma.
 
 ## Requisiti
 
@@ -40,10 +39,11 @@ Attualmente non sono presenti test; verranno aggiunti durante lo sviluppo.
 
 ## Esecuzione
 
-L’applicazione non è ancora avviabile. Le istruzioni di esecuzione saranno aggiunte quando sarà implementato il punto di ingresso.
+Dalla cartella principale del progetto, avvia il duello con `./gradlew -q run` su macOS o Linux, oppure `.\gradlew.bat -q run` su Windows PowerShell.
+Premi `1` per usare il pugno, `2` per il raggio oppure `0` per uscire. Conferma la scelta con Invio.
 
 ## Uso di strumenti di intelligenza artificiale
 
-È stato utilizzato ChatGPT come supporto alla configurazione di Git, GitHub, IntelliJ IDEA e Gradle, all’impostazione di Java 25 e alla stesura di questo README.
+È stato utilizzato ChatGPT come supporto alla configurazione di Git, GitHub, IntelliJ IDEA e Gradle, all’impostazione di Java 25, alla stesura di questo README e allo sviluppo del duello a turni e della sua versione da terminale.
 
 La dichiarazione sarà aggiornata durante lo sviluppo. Una descrizione dettagliata dell’uso degli strumenti di AI sarà mantenuta nella Wiki del repository.

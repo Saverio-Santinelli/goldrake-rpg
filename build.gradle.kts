@@ -1,5 +1,13 @@
 plugins {
-    id("java")
+    application
+}
+
+application {
+    mainClass.set("it.unicam.cs.mpgc.rpg129548.DuelloConsole")
+}
+
+tasks.run {
+    standardInput = System.`in`
 }
 
 group = "it.unicam.cs.mpgc"
