@@ -63,6 +63,10 @@ public class Combattente {
         return energia;
     }
 
+    public int getEnergiaMassima() {
+        return energiaMassima;
+    }
+
     public boolean consumaEnergia(int costo) {
         if (costo < 0) {
             throw new IllegalArgumentException("Il costo non può essere negativo");

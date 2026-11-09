@@ -50,5 +50,6 @@ Premi `1` per il pugno, `2` per il raggio oppure `0` per uscire. Conferma con In
 ## Uso di strumenti di intelligenza artificiale
 
 È stato utilizzato ChatGPT come supporto alla configurazione di Git, GitHub, IntelliJ IDEA e Gradle, all’impostazione di Java 25, alla stesura di questo README e allo sviluppo del duello a turni, delle sue interfacce e del salvataggio.
+Gli sprite e lo sfondo dell’arena sono stati realizzati con uno strumento di generazione di immagini.
 
 La dichiarazione sarà aggiornata durante lo sviluppo. Una descrizione dettagliata dell’uso degli strumenti di AI sarà mantenuta nella Wiki del repository.
