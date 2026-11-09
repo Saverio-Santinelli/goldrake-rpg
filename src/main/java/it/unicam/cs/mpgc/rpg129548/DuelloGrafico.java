@@ -2,6 +2,9 @@ package it.unicam.cs.mpgc.rpg129548;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -19,6 +22,9 @@ public final class DuelloGrafico {
     private final JTextArea cronaca = new JTextArea(9, 44);
     private final JButton pugno = new JButton(descrivi(partita.pugno));
     private final JButton raggio = new JButton(descrivi(partita.raggio));
+    private final JButton salva = new JButton("Salva partita");
+    private final SalvataggioPartita archivio = new SalvataggioPartita(
+            Path.of(System.getProperty("user.home"), ".goldrake-rpg", "partita.properties"));
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new DuelloGrafico().mostra());
@@ -41,14 +47,23 @@ public final class DuelloGrafico {
         contenuto.add(new JScrollPane(cronaca), BorderLayout.CENTER);
 
         JButton nuovaPartita = new JButton("Nuova partita");
+        JButton carica = new JButton("Carica partita");
         pugno.addActionListener(evento -> attacca(partita.pugno));
         raggio.addActionListener(evento -> attacca(partita.raggio));
         nuovaPartita.addActionListener(evento -> iniziaPartita());
+        salva.addActionListener(evento -> salvaPartita());
+        carica.addActionListener(evento -> caricaPartita());
         JPanel comandi = new JPanel();
         comandi.add(pugno);
         comandi.add(raggio);
         comandi.add(nuovaPartita);
-        contenuto.add(comandi, BorderLayout.SOUTH);
+        JPanel gestionePartita = new JPanel();
+        gestionePartita.add(salva);
+        gestionePartita.add(carica);
+        JPanel azioni = new JPanel(new GridLayout(2, 1));
+        azioni.add(comandi);
+        azioni.add(gestionePartita);
+        contenuto.add(azioni, BorderLayout.SOUTH);
 
         finestra.setContentPane(contenuto);
         cronaca.setText("Il Mostro di Vega ti sfida. Scegli una mossa.\n");
@@ -62,6 +77,27 @@ public final class DuelloGrafico {
         partita = new DuelloGoldrake();
         cronaca.setText("Nuovo duello. Scegli una mossa.\n");
         aggiornaStato();
+    }
+
+    private void salvaPartita() {
+        try {
+            archivio.salva(partita);
+            scrivi("Partita salvata.");
+        } catch (IOException errore) {
+            scrivi("Impossibile salvare la partita. " + errore.getMessage());
+        }
+    }
+
+    private void caricaPartita() {
+        try {
+            partita = archivio.carica();
+            cronaca.setText("Partita caricata. Scegli una mossa.\n");
+            aggiornaStato();
+        } catch (NoSuchFileException errore) {
+            scrivi("Nessuna partita salvata.");
+        } catch (IOException errore) {
+            scrivi("Impossibile caricare la partita. " + errore.getMessage());
+        }
     }
 
     private void attacca(Attacco mossa) {
@@ -88,6 +124,7 @@ public final class DuelloGrafico {
         boolean inCorso = !partita.combattimento.isTerminato();
         pugno.setEnabled(inCorso);
         raggio.setEnabled(inCorso);
+        salva.setEnabled(inCorso);
     }
 
     private void scrivi(String messaggio) {
