@@ -22,7 +22,8 @@ final class SalvataggioPartita {
         }
 
         Properties dati = new Properties();
-        dati.setProperty("versione", "1");
+        dati.setProperty("versione", "2");
+        dati.setProperty("tappa", partita.tappa.name());
         dati.setProperty("vitaGoldrake", Integer.toString(partita.goldrake.getPuntiVita()));
         dati.setProperty("energiaGoldrake", Integer.toString(partita.goldrake.getEnergia()));
         dati.setProperty("vitaNemico", Integer.toString(partita.nemico.getPuntiVita()));
@@ -44,11 +45,12 @@ final class SalvataggioPartita {
         Properties dati = new Properties();
         try (var ingresso = Files.newInputStream(file)) {
             dati.load(ingresso);
-            if (!"1".equals(dati.getProperty("versione"))) {
-                throw new IllegalArgumentException("Versione del salvataggio non supportata");
-            }
-
-            DuelloGoldrake partita = new DuelloGoldrake();
+            Tappa tappa = switch (dati.getProperty("versione", "")) {
+                case "1" -> Tappa.LUNA;
+                case "2" -> Tappa.valueOf(dati.getProperty("tappa", ""));
+                default -> throw new IllegalArgumentException("Versione del salvataggio non supportata");
+            };
+            DuelloGoldrake partita = new DuelloGoldrake(tappa);
             int vitaGoldrake = leggi(dati, "vitaGoldrake", 1, partita.goldrake.getPuntiVitaMassimi());
             int energiaGoldrake = leggi(dati, "energiaGoldrake", 0, partita.goldrake.getEnergia());
             int vitaNemico = leggi(dati, "vitaNemico", 1, partita.nemico.getPuntiVitaMassimi());

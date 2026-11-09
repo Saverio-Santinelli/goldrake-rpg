@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class DuelloConsole {
 
     public static void main(String[] args) {
-        DuelloGoldrake partita = new DuelloGoldrake();
+        DuelloGoldrake partita = new DuelloGoldrake(Tappa.LUNA);
         Combattente goldrake = partita.goldrake;
         Combattente nemico = partita.nemico;
         Combattimento duello = partita.combattimento;

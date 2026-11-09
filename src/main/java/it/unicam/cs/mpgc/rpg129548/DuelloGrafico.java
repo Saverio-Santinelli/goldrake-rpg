@@ -29,9 +29,10 @@ public final class DuelloGrafico {
     private static final Color AZZURRO = new Color(0x65C8FF);
     private static final Color VIOLA = new Color(0xB397F8);
 
-    private DuelloGoldrake partita = new DuelloGoldrake();
+    private DuelloGoldrake partita = new DuelloGoldrake(Tappa.VALLE);
     private final Arena arena = new Arena();
     private final JLabel esito = etichetta("Il tuo turno", 14, AZZURRO);
+    private final JLabel nomeNemico = etichetta("", 16, VIOLA);
     private final JProgressBar vitaGoldrake = barra(AZZURRO);
     private final JProgressBar energiaGoldrake = barra(new Color(0xF5C66B));
     private final JProgressBar vitaNemico = barra(VIOLA);
@@ -39,6 +40,7 @@ public final class DuelloGrafico {
     private final JButton pugno = new JButton(descrivi(partita.pugno));
     private final JButton raggio = new JButton(descrivi(partita.raggio));
     private final JButton salva = new JButton("Salva partita");
+    private final JButton prosegui = new JButton();
     private final SalvataggioPartita archivio = new SalvataggioPartita(
             Path.of(System.getProperty("user.home"), ".goldrake-rpg", "partita.properties"));
 
@@ -55,20 +57,24 @@ public final class DuelloGrafico {
         JPanel intestazione = pannello(new BorderLayout(0, 12));
         JPanel titolo = pannello(new BorderLayout());
         titolo.add(etichetta("Goldrake RPG", 26, TESTO), BorderLayout.WEST);
-        titolo.add(esito, BorderLayout.EAST);
+        JPanel avanzamento = pannello(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        avanzamento.add(esito);
+        avanzamento.add(prosegui);
+        titolo.add(avanzamento, BorderLayout.EAST);
         intestazione.add(titolo, BorderLayout.NORTH);
         JPanel stato = pannello(new GridLayout(1, 2, 14, 0));
-        stato.add(scheda("Goldrake", AZZURRO, vitaGoldrake, energiaGoldrake));
-        stato.add(scheda("Mostro di Vega", VIOLA, vitaNemico));
+        stato.add(scheda(etichetta("Goldrake", 16, AZZURRO), vitaGoldrake, energiaGoldrake));
+        stato.add(scheda(nomeNemico, vitaNemico));
         intestazione.add(stato, BorderLayout.CENTER);
         contenuto.add(intestazione, BorderLayout.NORTH);
         contenuto.add(arena, BorderLayout.CENTER);
 
         JButton nuovaPartita = new JButton("Nuova partita");
-        JButton carica = new JButton("Carica partita");
+        JButton carica = new JButton("Continua");
         pugno.addActionListener(evento -> attacca(partita.pugno));
         raggio.addActionListener(evento -> attacca(partita.raggio));
-        nuovaPartita.addActionListener(evento -> iniziaPartita());
+        nuovaPartita.addActionListener(evento -> iniziaDuello(Tappa.VALLE));
+        prosegui.addActionListener(evento -> proseguiDopoDuello());
         salva.addActionListener(evento -> salvaPartita());
         carica.addActionListener(evento -> caricaPartita());
         JPanel comandi = pannello(new FlowLayout(FlowLayout.LEFT, 6, 0));
@@ -88,18 +94,26 @@ public final class DuelloGrafico {
         contenuto.add(inferiore, BorderLayout.SOUTH);
 
         finestra.setContentPane(contenuto);
-        cronaca.setText("Il Mostro di Vega ti sfida. Scegli una mossa.\n");
-        aggiornaStato();
+        iniziaDuello(Tappa.VALLE);
         finestra.pack();
         finestra.setMinimumSize(new Dimension(800, 545));
         finestra.setLocationRelativeTo(null);
         finestra.setVisible(true);
     }
 
-    private void iniziaPartita() {
-        partita = new DuelloGoldrake();
-        cronaca.setText("Nuovo duello. Scegli una mossa.\n");
+    private void iniziaDuello(Tappa tappa) {
+        partita = new DuelloGoldrake(tappa);
+        cronaca.setText("%s%nTi sfida: %s. Scegli una mossa.%n"
+                .formatted(tappa.luogo, partita.nemico.getNome()));
         aggiornaStato();
+    }
+
+    private void proseguiDopoDuello() {
+        if (partita.goldrake.isSconfitto()) {
+            iniziaDuello(partita.tappa);
+        } else if (partita.nemico.isSconfitto() && partita.tappa != Tappa.LUNA) {
+            iniziaDuello(partita.tappa.successiva());
+        }
     }
 
     private void salvaPartita() {
@@ -114,7 +128,7 @@ public final class DuelloGrafico {
     private void caricaPartita() {
         try {
             partita = archivio.carica();
-            cronaca.setText("Partita caricata. Scegli una mossa.\n");
+            cronaca.setText("Partita caricata: %s. Scegli una mossa.%n".formatted(partita.tappa.luogo));
             aggiornaStato();
         } catch (NoSuchFileException errore) {
             scrivi("Nessuna partita salvata.");
@@ -132,10 +146,16 @@ public final class DuelloGrafico {
         scrivi("Goldrake usa " + mossa.getNome() + ".");
         if (!duello.isTerminato()) {
             duello.attacca(partita.artiglio);
-            scrivi("Il Mostro di Vega contrattacca con Artiglio.");
+            scrivi(partita.nemico.getNome() + " contrattacca con Artiglio.");
         }
         if (duello.isTerminato()) {
-            scrivi(partita.goldrake.isSconfitto() ? "Sconfitta!" : "Vittoria!");
+            if (partita.goldrake.isSconfitto()) {
+                scrivi("Sconfitta. Puoi riprovare questo duello.");
+            } else if (partita.tappa == Tappa.LUNA) {
+                scrivi("Campagna completata! La Terra è salva.");
+            } else {
+                scrivi("Vittoria! Hai sbloccato il prossimo duello.");
+            }
         }
         aggiornaStato();
     }
@@ -147,13 +167,18 @@ public final class DuelloGrafico {
                 partita.goldrake.getEnergiaMassima());
         aggiornaBarra(vitaNemico, "Vita", partita.nemico.getPuntiVita(),
                 partita.nemico.getPuntiVitaMassimi());
-        arena.aggiorna(partita.goldrake.isSconfitto(), partita.nemico.isSconfitto());
+        nomeNemico.setText(partita.nemico.getNome());
+        arena.aggiorna(partita.tappa, partita.goldrake.isSconfitto(), partita.nemico.isSconfitto());
         boolean inCorso = !partita.combattimento.isTerminato();
+        boolean sconfitto = partita.goldrake.isSconfitto();
+        String duello = "Duello %d/%d".formatted(partita.tappa.ordinal() + 1, Tappa.values().length);
         if (inCorso) {
-            esito.setText("Il tuo turno");
+            esito.setText(duello + "  /  Il tuo turno");
         } else {
-            esito.setText(partita.goldrake.isSconfitto() ? "Sconfitta" : "Vittoria");
+            esito.setText(duello + (sconfitto ? "  /  Sconfitta" : "  /  Vittoria"));
         }
+        prosegui.setText(sconfitto ? "Riprova duello" : "Prossimo duello");
+        prosegui.setVisible(!inCorso && (sconfitto || partita.tappa != Tappa.LUNA));
         pugno.setEnabled(inCorso);
         raggio.setEnabled(inCorso);
         salva.setEnabled(inCorso);
@@ -174,11 +199,11 @@ public final class DuelloGrafico {
         return pannello;
     }
 
-    private static JPanel scheda(String nome, Color colore, JProgressBar... barre) {
+    private static JPanel scheda(JLabel nome, JProgressBar... barre) {
         JPanel scheda = new JPanel(new BorderLayout(0, 8));
         scheda.setBackground(SUPERFICIE);
         scheda.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
-        scheda.add(etichetta(nome, 16, colore), BorderLayout.NORTH);
+        scheda.add(nome, BorderLayout.NORTH);
         JPanel indicatori = new JPanel(new GridLayout(2, 1, 0, 5));
         indicatori.setOpaque(false);
         for (JProgressBar barra : barre) {
