@@ -28,19 +28,22 @@ public final class DuelloGrafico {
     private static final Color TESTO_SECONDARIO = new Color(0xA9BBDC);
     private static final Color AZZURRO = new Color(0x65C8FF);
     private static final Color VIOLA = new Color(0xB397F8);
+    private static final Color ROSSO = new Color(0xFF727C);
+    private static final Color ORO = new Color(0xF5C66B);
+    private static final Color ACCIAIO = new Color(0x8499B6);
 
     private DuelloGoldrake partita = new DuelloGoldrake(Tappa.VALLE);
     private final Arena arena = new Arena();
     private final JLabel esito = etichetta("Il tuo turno", 14, AZZURRO);
     private final JLabel nomeNemico = etichetta("", 16, VIOLA);
     private final JProgressBar vitaGoldrake = barra(AZZURRO);
-    private final JProgressBar energiaGoldrake = barra(new Color(0xF5C66B));
+    private final JProgressBar energiaGoldrake = barra(ORO);
     private final JProgressBar vitaNemico = barra(VIOLA);
     private final JTextArea cronaca = new JTextArea(4, 44);
-    private final JButton pugno = new JButton(descrivi(partita.pugno));
-    private final JButton raggio = new JButton(descrivi(partita.raggio));
-    private final JButton salva = new JButton("Salva partita");
-    private final JButton prosegui = new JButton();
+    private final JButton maglioPerforante = new PulsanteArcade(descrivi(partita.maglioPerforante), ROSSO);
+    private final JButton alabardaSpaziale = new PulsanteArcade(descrivi(partita.alabardaSpaziale), ORO);
+    private final JButton salva = new PulsanteArcade("Salva partita", ACCIAIO);
+    private final JButton prosegui = new PulsanteArcade("", ORO);
     private final SalvataggioPartita archivio = new SalvataggioPartita(
             Path.of(System.getProperty("user.home"), ".goldrake-rpg", "partita.properties"));
 
@@ -69,17 +72,19 @@ public final class DuelloGrafico {
         contenuto.add(intestazione, BorderLayout.NORTH);
         contenuto.add(arena, BorderLayout.CENTER);
 
-        JButton nuovaPartita = new JButton("Nuova partita");
-        JButton carica = new JButton("Continua");
-        pugno.addActionListener(evento -> attacca(partita.pugno));
-        raggio.addActionListener(evento -> attacca(partita.raggio));
+        JButton nuovaPartita = new PulsanteArcade("Nuova partita", ACCIAIO);
+        JButton carica = new PulsanteArcade("Carica salvataggio", AZZURRO);
+        salva.setToolTipText("Registra la tappa, i punti vita e l'energia attuali.");
+        carica.setToolTipText("Riprendi dall'ultima volta che hai premuto Salva partita.");
+        maglioPerforante.addActionListener(evento -> attacca(partita.maglioPerforante));
+        alabardaSpaziale.addActionListener(evento -> attacca(partita.alabardaSpaziale));
         nuovaPartita.addActionListener(evento -> iniziaDuello(Tappa.VALLE));
         prosegui.addActionListener(evento -> proseguiDopoDuello());
         salva.addActionListener(evento -> salvaPartita());
         carica.addActionListener(evento -> caricaPartita());
         JPanel comandi = pannello(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        comandi.add(pugno);
-        comandi.add(raggio);
+        comandi.add(maglioPerforante);
+        comandi.add(alabardaSpaziale);
         JPanel gestionePartita = pannello(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         gestionePartita.add(nuovaPartita);
         gestionePartita.add(salva);
@@ -96,7 +101,9 @@ public final class DuelloGrafico {
         finestra.setContentPane(contenuto);
         iniziaDuello(Tappa.VALLE);
         finestra.pack();
-        finestra.setMinimumSize(new Dimension(800, 545));
+        int larghezzaMinima = azioni.getPreferredSize().width + 44 + finestra.getInsets().left
+                + finestra.getInsets().right;
+        finestra.setMinimumSize(new Dimension(Math.max(800, larghezzaMinima), 545));
         finestra.setLocationRelativeTo(null);
         finestra.setVisible(true);
     }
@@ -131,7 +138,7 @@ public final class DuelloGrafico {
             cronaca.setText("Partita caricata: %s. Scegli una mossa.%n".formatted(partita.tappa.luogo));
             aggiornaStato();
         } catch (NoSuchFileException errore) {
-            scrivi("Nessuna partita salvata.");
+            scrivi("Nessun salvataggio. Durante un duello, premi Salva partita per crearne uno.");
         } catch (IOException errore) {
             scrivi("Impossibile caricare la partita. " + errore.getMessage());
         }
@@ -145,8 +152,9 @@ public final class DuelloGrafico {
         }
         scrivi("Goldrake usa " + mossa.getNome() + ".");
         if (!duello.isTerminato()) {
-            duello.attacca(partita.artiglio);
-            scrivi(partita.nemico.getNome() + " contrattacca con Artiglio.");
+            duello.attacca(partita.contrattacco);
+            scrivi("%s contrattacca con %s.".formatted(
+                    partita.nemico.getNome(), partita.contrattacco.getNome()));
         }
         if (duello.isTerminato()) {
             if (partita.goldrake.isSconfitto()) {
@@ -179,8 +187,8 @@ public final class DuelloGrafico {
         }
         prosegui.setText(sconfitto ? "Riprova duello" : "Prossimo duello");
         prosegui.setVisible(!inCorso && (sconfitto || partita.tappa != Tappa.LUNA));
-        pugno.setEnabled(inCorso);
-        raggio.setEnabled(inCorso);
+        maglioPerforante.setEnabled(inCorso);
+        alabardaSpaziale.setEnabled(inCorso);
         salva.setEnabled(inCorso);
     }
 
@@ -263,7 +271,7 @@ public final class DuelloGrafico {
     }
 
     private static String descrivi(Attacco attacco) {
-        return "%s (%d danni, %d energia)".formatted(
+        return "%s · %d danni / %d EN".formatted(
                 attacco.getNome(), attacco.getDanno(), attacco.getCostoEnergia());
     }
 }

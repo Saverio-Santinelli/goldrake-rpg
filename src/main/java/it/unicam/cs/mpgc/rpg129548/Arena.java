@@ -4,7 +4,6 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RadialGradientPaint;
@@ -13,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Locale;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
@@ -21,10 +21,13 @@ final class Arena extends JComponent {
 
     private static final int LARGHEZZA = 920;
     private static final int ALTEZZA = 300;
-    private static final BufferedImage SFONDO = caricaImmagine("base-lunare-vega.png");
     private static final BufferedImage TAVOLA_SPRITE = caricaImmagine("combattenti.png");
     private static final BufferedImage GOLDRAKE = TAVOLA_SPRITE.getSubimage(55, 0, 665, 887);
-    private static final BufferedImage NEMICO = TAVOLA_SPRITE.getSubimage(870, 0, 904, 887);
+    private static final Map<Tappa, Scena> SCENE = Map.of(
+            Tappa.VALLE, new Scena(caricaImmagine("valle-montana.png"), caricaImmagine("esploratore.png")),
+            Tappa.CITTA, new Scena(caricaImmagine("citta-notturna.png"), caricaImmagine("guardiano.png")),
+            Tappa.LUNA, new Scena(caricaImmagine("base-lunare-vega.png"),
+                    TAVOLA_SPRITE.getSubimage(870, 0, 904, 887)));
     private Tappa tappa = Tappa.VALLE;
     private boolean goldrakeSconfitto;
     private boolean nemicoSconfitto;
@@ -52,10 +55,10 @@ final class Arena extends JComponent {
             double scala = Math.min((double) getWidth() / LARGHEZZA, (double) getHeight() / ALTEZZA);
             g.translate((getWidth() - LARGHEZZA * scala) / 2, (getHeight() - ALTEZZA * scala) / 2);
             g.scale(scala, scala);
-            disegnaSfondo(g);
+            Scena scena = SCENE.get(tappa);
+            g.drawImage(scena.sfondo(), 0, 0, LARGHEZZA, ALTEZZA, null);
             disegnaCombattente(g, GOLDRAKE, 245, goldrakeSconfitto);
-            disegnaCombattente(g, NEMICO, 675, nemicoSconfitto);
-            g.setColor(new Color(0xBECDE8));
+            disegnaCombattente(g, scena.nemico(), 675, nemicoSconfitto);
             g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
             scriviAlCentro(g, tappa.luogo.toUpperCase(Locale.ROOT), 30);
             g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
@@ -65,31 +68,15 @@ final class Arena extends JComponent {
         }
     }
 
-    private void disegnaSfondo(Graphics2D g) {
-        if (tappa == Tappa.LUNA) {
-            g.drawImage(SFONDO, 0, 0, LARGHEZZA, ALTEZZA, null);
-            return;
-        }
-        boolean valle = tappa == Tappa.VALLE;
-        g.setPaint(new GradientPaint(0, 0, new Color(valle ? 0x0E273A : 0x0C1228),
-                0, 218, new Color(valle ? 0x425D55 : 0x372E57)));
-        g.fillRect(0, 0, LARGHEZZA, ALTEZZA);
-        g.setColor(new Color(valle ? 0x254241 : 0x211D36));
-        if (valle) {
-            g.fillPolygon(new int[]{0, 105, 248, 352, 530, 658, 820, 920, 920, 0},
-                    new int[]{151, 67, 177, 129, 200, 150, 86, 159, 240, 240}, 10);
-        } else {
-            for (int x = 0; x < LARGHEZZA; x += 52) {
-                int y = 140 + (x * 31) % 78;
-                g.fillRect(x, y, 46, 230 - y);
-            }
-        }
-        g.setColor(new Color(valle ? 0x263B33 : 0x201E2E));
-        g.fillRect(0, 231, LARGHEZZA, ALTEZZA - 231);
-    }
-
     private static void scriviAlCentro(Graphics2D g, String testo, int y) {
-        g.drawString(testo, (LARGHEZZA - g.getFontMetrics().stringWidth(testo)) / 2, y);
+        var misure = g.getFontMetrics();
+        int larghezza = misure.stringWidth(testo);
+        int x = (LARGHEZZA - larghezza) / 2;
+        g.setColor(new Color(8, 12, 24, 200));
+        g.fillRoundRect(x - 10, y - misure.getAscent() - 4,
+                larghezza + 20, misure.getHeight() + 8, 6, 6);
+        g.setColor(new Color(0xEEF4FF));
+        g.drawString(testo, x, y);
     }
 
     private static void disegnaCombattente(Graphics2D sfondo, BufferedImage sprite,
@@ -137,5 +124,8 @@ final class Arena extends JComponent {
         } catch (IOException errore) {
             throw new UncheckedIOException("Impossibile caricare l'immagine dell'arena", errore);
         }
+    }
+
+    private record Scena(BufferedImage sfondo, BufferedImage nemico) {
     }
 }
