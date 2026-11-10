@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg129548;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -9,6 +10,7 @@ import java.awt.GridLayout;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -46,6 +48,7 @@ public final class DuelloGrafico {
     private final JButton prosegui = new PulsanteArcade("", ORO);
     private final SalvataggioPartita archivio = new SalvataggioPartita(
             Path.of(System.getProperty("user.home"), ".goldrake-rpg", "partita.properties"));
+    private MenuPrincipale menu;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new DuelloGrafico().mostra());
@@ -55,6 +58,18 @@ public final class DuelloGrafico {
         JFrame finestra = new JFrame("Goldrake RPG");
         finestra.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        CardLayout schermate = new CardLayout();
+        JPanel radice = new JPanel(schermate);
+        Runnable mostraDuello = () -> schermate.show(radice, "duello");
+        menu = new MenuPrincipale(() -> {
+            iniziaDuello(Tappa.VALLE);
+            mostraDuello.run();
+        }, () -> {
+            if (caricaPartita(menu::mostraMessaggio)) {
+                mostraDuello.run();
+            }
+        }, mostraDuello, finestra::dispose);
+
         JPanel contenuto = pannello(new BorderLayout(0, 14));
         contenuto.setBorder(BorderFactory.createEmptyBorder(18, 22, 18, 22));
         JPanel intestazione = pannello(new BorderLayout(0, 12));
@@ -63,6 +78,12 @@ public final class DuelloGrafico {
         JPanel avanzamento = pannello(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         avanzamento.add(esito);
         avanzamento.add(prosegui);
+        JButton apriMenu = new PulsanteArcade("Menu", ACCIAIO);
+        apriMenu.addActionListener(evento -> {
+            menu.abilitaRitornoAlDuello();
+            schermate.show(radice, "menu");
+        });
+        avanzamento.add(apriMenu);
         titolo.add(avanzamento, BorderLayout.EAST);
         intestazione.add(titolo, BorderLayout.NORTH);
         JPanel stato = pannello(new GridLayout(1, 2, 14, 0));
@@ -81,7 +102,7 @@ public final class DuelloGrafico {
         nuovaPartita.addActionListener(evento -> iniziaDuello(Tappa.VALLE));
         prosegui.addActionListener(evento -> proseguiDopoDuello());
         salva.addActionListener(evento -> salvaPartita());
-        carica.addActionListener(evento -> caricaPartita());
+        carica.addActionListener(evento -> caricaPartita(this::scrivi));
         JPanel comandi = pannello(new FlowLayout(FlowLayout.LEFT, 6, 0));
         comandi.add(maglioPerforante);
         comandi.add(alabardaSpaziale);
@@ -98,8 +119,9 @@ public final class DuelloGrafico {
         inferiore.add(azioni, BorderLayout.SOUTH);
         contenuto.add(inferiore, BorderLayout.SOUTH);
 
-        finestra.setContentPane(contenuto);
-        iniziaDuello(Tappa.VALLE);
+        radice.add(menu, "menu");
+        radice.add(contenuto, "duello");
+        finestra.setContentPane(radice);
         finestra.pack();
         int larghezzaMinima = azioni.getPreferredSize().width + 44 + finestra.getInsets().left
                 + finestra.getInsets().right;
@@ -132,16 +154,18 @@ public final class DuelloGrafico {
         }
     }
 
-    private void caricaPartita() {
+    private boolean caricaPartita(Consumer<String> mostraErrore) {
         try {
             partita = archivio.carica();
             cronaca.setText("Partita caricata: %s. Scegli una mossa.%n".formatted(partita.tappa.luogo));
             aggiornaStato();
+            return true;
         } catch (NoSuchFileException errore) {
-            scrivi("Nessun salvataggio. Durante un duello, premi Salva partita per crearne uno.");
+            mostraErrore.accept("Nessun salvataggio. Premi Salva partita durante un duello.");
         } catch (IOException errore) {
-            scrivi("Impossibile caricare la partita. " + errore.getMessage());
+            mostraErrore.accept("Impossibile caricare la partita. " + errore.getMessage());
         }
+        return false;
     }
 
     private void attacca(Attacco mossa) {

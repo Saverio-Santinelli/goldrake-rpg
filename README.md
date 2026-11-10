@@ -40,7 +40,8 @@ Attualmente non sono presenti test; verranno aggiunti durante lo sviluppo.
 ## Esecuzione
 
 Dalla cartella principale del progetto, apri il gioco con `./gradlew -q run` su macOS o Linux, oppure `.\gradlew.bat -q run` su Windows PowerShell.
-Nella finestra scegli **Maglio Perforante** o **Alabarda Spaziale** per attaccare. Dopo una vittoria, **Prossimo duello** sblocca la tappa seguente e ripristina vita ed energia. Dopo una sconfitta, **Riprova duello** ricomincia la stessa tappa. **Nuova partita** riparte dalla valle montana.
+Dal menu principale puoi iniziare una **Nuova partita** nella valle montana, **Carica salvataggio** oppure uscire. Durante un duello, **Menu** apre la schermata iniziale e **Torna al duello** riprende lo scontro in corso.
+Nel duello scegli **Maglio Perforante** o **Alabarda Spaziale** per attaccare. Dopo una vittoria, **Prossimo duello** sblocca la tappa seguente e ripristina vita ed energia. Dopo una sconfitta, **Riprova duello** ricomincia la stessa tappa.
 Durante un duello, **Salva partita** aggiorna il salvataggio in `.goldrake-rpg/partita.properties` nella cartella utente.
 **Carica salvataggio** ripristina la tappa, i punti vita dei due combattenti e l'energia di Goldrake dall'ultimo salvataggio manuale, anche dopo aver riaperto il gioco. I salvataggi della versione a duello singolo riprendono dalla Luna.
 
@@ -50,6 +51,6 @@ Premi `1` per il Maglio Perforante, `2` per l’Alabarda Spaziale oppure `0` per
 ## Uso di strumenti di intelligenza artificiale
 
 È stato utilizzato ChatGPT come supporto alla configurazione di Git, GitHub, IntelliJ IDEA e Gradle, all’impostazione di Java 25, alla stesura di questo README e allo sviluppo del duello a turni, delle sue interfacce e del salvataggio.
-Gli sprite e lo sfondo dell’arena sono stati realizzati con uno strumento di generazione di immagini.
+Gli sprite e gli sfondi delle arene e del menu sono stati realizzati con uno strumento di generazione di immagini.
 
 La dichiarazione sarà aggiornata durante lo sviluppo. Una descrizione dettagliata dell’uso degli strumenti di AI sarà mantenuta nella Wiki del repository.
