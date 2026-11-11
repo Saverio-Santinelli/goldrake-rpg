@@ -10,7 +10,6 @@ public class DuelloConsole {
         Combattente nemico = partita.nemico;
         Attacco maglioPerforante = partita.maglioPerforante;
         Attacco alabardaSpaziale = partita.alabardaSpaziale;
-        Attacco contrattacco = partita.contrattacco;
 
         System.out.println("Goldrake RPG - Duello contro il " + nemico.getNome());
         try (Scanner terminale = new Scanner(System.in)) {
@@ -21,13 +20,21 @@ public class DuelloConsole {
                         maglioPerforante.getNome(), maglioPerforante.getDanno(), maglioPerforante.getCostoEnergia());
                 System.out.printf("2. %s (%d danni, %d energia)%n",
                         alabardaSpaziale.getNome(), alabardaSpaziale.getDanno(), alabardaSpaziale.getCostoEnergia());
+                System.out.println("3. Guardia (riduce il danno e recupera energia)");
+                partita.avvisoSpeciale().ifPresent(System.out::println);
                 System.out.print("Scegli una mossa (0 per uscire): ");
 
                 if (!terminale.hasNextLine()) {
                     return;
                 }
+                String scelta = terminale.nextLine().strip();
+                if (scelta.equals("3")) {
+                    System.out.println("Goldrake si mette in guardia.");
+                    mostraRisposta(partita.usaGuardia(), goldrake);
+                    continue;
+                }
                 Attacco mossa;
-                switch (terminale.nextLine().strip()) {
+                switch (scelta) {
                     case "0" -> {
                         return;
                     }
@@ -40,16 +47,13 @@ public class DuelloConsole {
                 }
 
                 DuelloGoldrake.EsitoTurno turno = partita.giocaTurno(mossa);
-                if (turno == DuelloGoldrake.EsitoTurno.NON_ESEGUITO) {
+                if (!turno.eseguito()) {
                     System.out.println("Energia insufficiente. Scegli un'altra mossa.");
                     continue;
                 }
                 System.out.printf("Goldrake usa %s. Al nemico restano %d PV.%n",
                         mossa.getNome(), nemico.getPuntiVita());
-                if (turno == DuelloGoldrake.EsitoTurno.CON_CONTRATTACCO) {
-                    System.out.printf("Il nemico usa %s. A Goldrake restano %d PV.%n",
-                            contrattacco.getNome(), goldrake.getPuntiVita());
-                }
+                mostraRisposta(turno, goldrake);
             }
         }
 
@@ -58,5 +62,11 @@ public class DuelloConsole {
         } else {
             System.out.println("Vittoria! Goldrake ha sconfitto il " + nemico.getNome() + ".");
         }
+    }
+
+    private static void mostraRisposta(DuelloGoldrake.EsitoTurno turno, Combattente goldrake) {
+        turno.rispostaBoss().ifPresent(mossa -> System.out.printf(
+                "Il nemico usa %s (%d danni). A Goldrake restano %d PV.%n",
+                mossa.getNome(), mossa.getDanno(), goldrake.getPuntiVita()));
     }
 }

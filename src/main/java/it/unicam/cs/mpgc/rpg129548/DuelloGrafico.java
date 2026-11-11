@@ -40,6 +40,7 @@ public final class DuelloGrafico {
     private DuelloGoldrake partita = new DuelloGoldrake(Tappa.VALLE);
     private final Arena arena = new Arena();
     private final JLabel esito = etichetta("Il tuo turno", 14, AZZURRO);
+    private final JLabel avvisoSpeciale = etichetta("", 13, ORO);
     private final JLabel nomeNemico = etichetta("", 16, VIOLA);
     private final JProgressBar vitaGoldrake = barra(AZZURRO);
     private final JProgressBar energiaGoldrake = barra(ORO);
@@ -48,6 +49,7 @@ public final class DuelloGrafico {
     private final JButton maglioPerforante = new PulsanteArcade(descrivi(partita.maglioPerforante), ROSSO);
     private final JButton alabardaSpaziale = new PulsanteArcade(descrivi(partita.alabardaSpaziale), ORO);
     private final JButton tecnicaPremio = new PulsanteArcade("", VIOLA);
+    private final JButton guardia = new PulsanteArcade("Guardia", AZZURRO);
     private final JButton salva = new PulsanteArcade("Salva partita", ACCIAIO);
     private final JButton prosegui = new PulsanteArcade("", ORO);
     private final SalvataggioPartita archivio = new SalvataggioPartita(
@@ -94,6 +96,8 @@ public final class DuelloGrafico {
         stato.add(scheda(etichetta("Goldrake", 16, AZZURRO), vitaGoldrake, energiaGoldrake));
         stato.add(scheda(nomeNemico, vitaNemico));
         intestazione.add(stato, BorderLayout.CENTER);
+        avvisoSpeciale.setVisible(false);
+        intestazione.add(avvisoSpeciale, BorderLayout.SOUTH);
         contenuto.add(intestazione, BorderLayout.NORTH);
         contenuto.add(arena, BorderLayout.CENTER);
 
@@ -105,6 +109,9 @@ public final class DuelloGrafico {
         alabardaSpaziale.addActionListener(evento -> attacca(partita.alabardaSpaziale));
         tecnicaPremio.addActionListener(evento -> partita.tecnicaPremio()
                 .map(TecnicaPremio::attacco).ifPresent(this::attacca));
+        guardia.setToolTipText("Dimezza il danno in arrivo e recupera fino a %d energia."
+                .formatted(DuelloGoldrake.ENERGIA_GUARDIA));
+        guardia.addActionListener(evento -> mostraTurno(partita.usaGuardia(), "Goldrake si mette in guardia."));
         nuovaPartita.addActionListener(evento -> iniziaDuello(Tappa.VALLE));
         prosegui.addActionListener(evento -> proseguiDopoDuello());
         salva.addActionListener(evento -> salvaPartita());
@@ -113,6 +120,7 @@ public final class DuelloGrafico {
         comandi.add(maglioPerforante);
         comandi.add(alabardaSpaziale);
         comandi.add(tecnicaPremio);
+        comandi.add(guardia);
         JPanel gestionePartita = pannello(new FlowLayout(FlowLayout.LEFT, 6, 0));
         gestionePartita.add(nuovaPartita);
         gestionePartita.add(salva);
@@ -204,15 +212,20 @@ public final class DuelloGrafico {
 
     private void attacca(Attacco mossa) {
         DuelloGoldrake.EsitoTurno turno = partita.giocaTurno(mossa);
-        if (turno == DuelloGoldrake.EsitoTurno.NON_ESEGUITO) {
+        if (!turno.eseguito()) {
             scrivi("Energia insufficiente. Scegli un'altra mossa.");
             return;
         }
-        scrivi("Goldrake usa " + mossa.getNome() + ".");
-        if (turno == DuelloGoldrake.EsitoTurno.CON_CONTRATTACCO) {
-            scrivi("%s contrattacca con %s.".formatted(
-                    partita.nemico.getNome(), partita.contrattacco.getNome()));
+        mostraTurno(turno, "Goldrake usa " + mossa.getNome() + ".");
+    }
+
+    private void mostraTurno(DuelloGoldrake.EsitoTurno turno, String azione) {
+        if (!turno.eseguito()) {
+            return;
         }
+        scrivi(azione);
+        turno.rispostaBoss().ifPresent(mossa -> scrivi("%s usa %s (%d danni).".formatted(
+                partita.nemico.getNome(), mossa.getNome(), mossa.getDanno())));
         if (partita.isTerminato()) {
             if (partita.goldrake.isSconfitto()) {
                 scrivi("Sconfitta. Puoi riprovare questo duello.");
@@ -237,6 +250,9 @@ public final class DuelloGrafico {
         nomeNemico.setText(partita.nemico.getNome());
         arena.aggiorna(partita.tappa, partita.goldrake.isSconfitto(), partita.nemico.isSconfitto());
         boolean inCorso = !partita.isTerminato();
+        String avviso = partita.avvisoSpeciale().orElse("");
+        avvisoSpeciale.setText(avviso);
+        avvisoSpeciale.setVisible(!avviso.isEmpty());
         boolean sconfitto = partita.goldrake.isSconfitto();
         String duello = "Duello %d/%d".formatted(partita.tappa.ordinal() + 1, Tappa.values().length);
         if (inCorso) {
@@ -252,6 +268,7 @@ public final class DuelloGrafico {
         prosegui.setVisible(partita.tappaDaGiocare().isPresent());
         maglioPerforante.setEnabled(inCorso);
         alabardaSpaziale.setEnabled(inCorso);
+        guardia.setEnabled(inCorso);
         partita.tecnicaPremio().ifPresentOrElse(premio -> {
             Attacco attacco = premio.attacco();
             tecnicaPremio.setText(descrivi(attacco));

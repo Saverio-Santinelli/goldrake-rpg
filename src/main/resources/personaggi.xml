@@ -3,11 +3,17 @@
     <goldrake nome="Goldrake" puntiVita="100" energia="30"/>
     <boss tappa="VALLE" nome="Esploratore di Vega" puntiVita="55" energia="10">
         <contrattacco nome="Lame gemelle" danno="9"/>
+        <speciale nome="Vortice di Lame" danno="20" dopo="2"
+                  avviso="L'Esploratore incrocia le lame e inizia a ruotare."/>
     </boss>
     <boss tappa="CITTA" nome="Guardiano di Vega" puntiVita="70" energia="10">
         <contrattacco nome="Raffica protonica" danno="12"/>
+        <speciale nome="Bombardamento Protonico" danno="26" dopo="3"
+                  avviso="I cannoni del Guardiano si illuminano e puntano Goldrake."/>
     </boss>
     <boss tappa="LUNA" nome="Mostro di Vega" puntiVita="80" energia="10">
         <contrattacco nome="Artiglio lacerante" danno="15"/>
+        <speciale nome="Schianto Selenico" danno="32" dopo="1"
+                  avviso="Il Mostro di Vega solleva entrambi gli artigli per lo schianto."/>
     </boss>
 </personaggi>

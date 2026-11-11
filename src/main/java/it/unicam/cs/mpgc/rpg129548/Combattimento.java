@@ -38,9 +38,13 @@ public class Combattimento {
         if (!attacco.esegui(diTurno, bersaglio)) {
             return false;
         }
-        if (!isTerminato()) {
-            diTurno = bersaglio;
-        }
+        passaTurno();
         return true;
+    }
+
+    void passaTurno() {
+        if (!isTerminato()) {
+            diTurno = diTurno == primo ? secondo : primo;
+        }
     }
 }

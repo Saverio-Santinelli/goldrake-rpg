@@ -25,11 +25,12 @@ final class SalvataggioPartita {
         }
 
         Properties dati = new Properties();
-        dati.setProperty("versione", "3");
+        dati.setProperty("versione", "4");
         dati.setProperty("tappa", partita.tappa.name());
         dati.setProperty("vitaGoldrake", Integer.toString(partita.goldrake.getPuntiVita()));
         dati.setProperty("energiaGoldrake", Integer.toString(partita.goldrake.getEnergia()));
         dati.setProperty("vitaNemico", Integer.toString(partita.nemico.getPuntiVita()));
+        dati.setProperty("faseBoss", Integer.toString(partita.faseBoss()));
         partita.tecnicaPremio().ifPresent(tecnica -> dati.setProperty("tecnicaPremio", tecnica.name()));
 
         Path cartella = Files.createDirectories(fileXml.getParent());
@@ -51,13 +52,14 @@ final class SalvataggioPartita {
             String versione = dati.getProperty("versione", "");
             Tappa tappa = switch (versione) {
                 case "1" -> Tappa.LUNA;
-                case "2", "3" -> Tappa.valueOf(dati.getProperty("tappa", ""));
+                case "2", "3", "4" -> Tappa.valueOf(dati.getProperty("tappa", ""));
                 default -> throw new IllegalArgumentException("Versione del salvataggio non supportata");
             };
-            Optional<TecnicaPremio> tecnica = versione.equals("3")
+            Optional<TecnicaPremio> tecnica = versione.equals("3") || versione.equals("4")
                     ? Optional.ofNullable(dati.getProperty("tecnicaPremio")).map(TecnicaPremio::valueOf)
                     : Optional.empty();
-            DuelloGoldrake partita = new DuelloGoldrake(tappa, tecnica);
+            int faseBoss = versione.equals("4") ? Integer.parseInt(dati.getProperty("faseBoss")) : 0;
+            DuelloGoldrake partita = new DuelloGoldrake(tappa, tecnica, faseBoss);
             int vitaGoldrake = leggi(dati, "vitaGoldrake", 1, partita.goldrake.getPuntiVitaMassimi());
             int energiaGoldrake = leggi(dati, "energiaGoldrake", 0, partita.goldrake.getEnergia());
             int vitaNemico = leggi(dati, "vitaNemico", 1, partita.nemico.getPuntiVitaMassimi());

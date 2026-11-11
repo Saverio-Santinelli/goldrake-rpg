@@ -55,7 +55,11 @@ final class CatalogoPersonaggi {
             Element mossa = elementoUnico(elemento, "contrattacco");
             Attacco contrattacco = new Attacco(mossa.getAttribute("nome"),
                     leggiIntero(mossa, "danno"), 0);
-            if (avversari.putIfAbsent(tappa, new Avversario(leggiProfilo(elemento), contrattacco)) != null) {
+            Element speciale = elementoUnico(elemento, "speciale");
+            AttaccoSpeciale attaccoSpeciale = new AttaccoSpeciale(
+                    new Attacco(speciale.getAttribute("nome"), leggiIntero(speciale, "danno"), 0),
+                    leggiIntero(speciale, "dopo"), speciale.getAttribute("avviso"));
+            if (avversari.putIfAbsent(tappa, new Avversario(leggiProfilo(elemento), contrattacco, attaccoSpeciale)) != null) {
                 throw new IllegalArgumentException("Boss duplicato per la tappa " + tappa);
             }
         }
@@ -109,6 +113,14 @@ final class CatalogoPersonaggi {
         }
     }
 
-    record Avversario(Profilo profilo, Attacco contrattacco) {
+    record Avversario(Profilo profilo, Attacco contrattacco, AttaccoSpeciale speciale) {
+    }
+
+    record AttaccoSpeciale(Attacco mossa, int turniNormali, String avviso) {
+        AttaccoSpeciale {
+            if (turniNormali < 1 || turniNormali == Integer.MAX_VALUE || avviso.isBlank()) {
+                throw new IllegalArgumentException("Configurazione della mossa speciale non valida");
+            }
+        }
     }
 }
