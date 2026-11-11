@@ -42,8 +42,9 @@ Attualmente non sono presenti test; verranno aggiunti durante lo sviluppo.
 Dalla cartella principale del progetto, apri il gioco con `./gradlew -q run` su macOS o Linux, oppure `.\gradlew.bat -q run` su Windows PowerShell.
 Dal menu principale puoi iniziare una **Nuova partita** nella valle montana, **Carica salvataggio** oppure uscire. Durante un duello, **Menu** apre la schermata iniziale e **Torna al duello** riprende lo scontro in corso.
 Nel duello scegli **Maglio Perforante** o **Alabarda Spaziale** per attaccare. Dopo una vittoria, **Prossimo duello** sblocca la tappa seguente e ripristina vita ed energia. Dopo una sconfitta, **Riprova duello** ricomincia la stessa tappa.
+Quando sconfiggi il primo boss, premi **Scegli tecnica**. **Tuono Spaziale** infligge 45 danni e costa 30 energia. **Raggio Antigravità** infligge 18 danni e costa 10 energia. La scelta avvia e salva il duello in città. La tecnica rimane disponibile fino alla fine della campagna.
 Durante un duello, **Salva partita** aggiorna il salvataggio in `.goldrake-rpg/partita.xml` nella cartella utente.
-**Carica salvataggio** ripristina la tappa, i punti vita dei due combattenti e l'energia di Goldrake dall'ultimo salvataggio manuale, anche dopo aver riaperto il gioco. Se il file XML è assente, il gioco può leggere il precedente `partita.properties`. I salvataggi della versione a duello singolo riprendono dalla Luna.
+**Carica salvataggio** ripristina la tappa, la vita dei combattenti, l'energia di Goldrake e l'eventuale tecnica scelta. Se il file XML è assente, il gioco può leggere il precedente `partita.properties`. I salvataggi della versione a duello singolo riprendono dalla Luna.
 
 Le statistiche iniziali di Goldrake e dei tre boss, insieme ai contrattacchi dei boss, sono definite in [personaggi.xml](src/main/resources/personaggi.xml). Il gioco legge questo catalogo all'avvio.
 

@@ -14,9 +14,18 @@ final class DuelloGoldrake {
     final Attacco maglioPerforante = new Attacco("Maglio Perforante", 10, 0);
     final Attacco alabardaSpaziale = new Attacco("Alabarda Spaziale", 30, 20);
     final Attacco contrattacco;
+    private final Optional<TecnicaPremio> tecnicaPremio;
 
     DuelloGoldrake(Tappa tappa) {
+        this(tappa, Optional.empty());
+    }
+
+    DuelloGoldrake(Tappa tappa, Optional<TecnicaPremio> tecnicaPremio) {
+        if (tappa == Tappa.VALLE && tecnicaPremio.isPresent()) {
+            throw new IllegalArgumentException("La tecnica premio si sblocca dopo la valle");
+        }
         this.tappa = tappa;
+        this.tecnicaPremio = tecnicaPremio;
         goldrake = PERSONAGGI.goldrake().creaCombattente();
         CatalogoPersonaggi.Avversario avversario = PERSONAGGI.avversario(tappa);
         nemico = avversario.profilo().creaCombattente();
@@ -25,6 +34,10 @@ final class DuelloGoldrake {
     }
 
     EsitoTurno giocaTurno(Attacco mossa) {
+        boolean usaPremio = tecnicaPremio.map(premio -> premio.attacco() == mossa).orElse(false);
+        if (mossa != maglioPerforante && mossa != alabardaSpaziale && !usaPremio) {
+            throw new IllegalArgumentException("Mossa non disponibile per Goldrake");
+        }
         if (!inAttesaDiMossa() || !combattimento.attacca(mossa)) {
             return EsitoTurno.NON_ESEGUITO;
         }
@@ -51,6 +64,23 @@ final class DuelloGoldrake {
             return Optional.of(tappa.successiva());
         }
         return Optional.empty();
+    }
+
+    Optional<TecnicaPremio> tecnicaPremio() {
+        return tecnicaPremio;
+    }
+
+    boolean deveSceglierePremio() {
+        return tappa == Tappa.VALLE && nemico.isSconfitto() && !goldrake.isSconfitto();
+    }
+
+    DuelloGoldrake prosegui(Optional<TecnicaPremio> scelta) {
+        Tappa destinazione = tappaDaGiocare()
+                .orElseThrow(() -> new IllegalStateException("Nessun duello da iniziare"));
+        if (scelta.isPresent() != deveSceglierePremio()) {
+            throw new IllegalArgumentException("La scelta è richiesta solo dopo la vittoria nella valle");
+        }
+        return new DuelloGoldrake(destinazione, scelta.or(() -> tecnicaPremio));
     }
 
     enum EsitoTurno {

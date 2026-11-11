@@ -10,11 +10,14 @@ import java.awt.GridLayout;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -44,6 +47,7 @@ public final class DuelloGrafico {
     private final JTextArea cronaca = new JTextArea(4, 44);
     private final JButton maglioPerforante = new PulsanteArcade(descrivi(partita.maglioPerforante), ROSSO);
     private final JButton alabardaSpaziale = new PulsanteArcade(descrivi(partita.alabardaSpaziale), ORO);
+    private final JButton tecnicaPremio = new PulsanteArcade("", VIOLA);
     private final JButton salva = new PulsanteArcade("Salva partita", ACCIAIO);
     private final JButton prosegui = new PulsanteArcade("", ORO);
     private final SalvataggioPartita archivio = new SalvataggioPartita(
@@ -99,6 +103,8 @@ public final class DuelloGrafico {
         carica.setToolTipText("Riprendi dall'ultima volta che hai premuto Salva partita.");
         maglioPerforante.addActionListener(evento -> attacca(partita.maglioPerforante));
         alabardaSpaziale.addActionListener(evento -> attacca(partita.alabardaSpaziale));
+        tecnicaPremio.addActionListener(evento -> partita.tecnicaPremio()
+                .map(TecnicaPremio::attacco).ifPresent(this::attacca));
         nuovaPartita.addActionListener(evento -> iniziaDuello(Tappa.VALLE));
         prosegui.addActionListener(evento -> proseguiDopoDuello());
         salva.addActionListener(evento -> salvaPartita());
@@ -106,13 +112,14 @@ public final class DuelloGrafico {
         JPanel comandi = pannello(new FlowLayout(FlowLayout.LEFT, 6, 0));
         comandi.add(maglioPerforante);
         comandi.add(alabardaSpaziale);
-        JPanel gestionePartita = pannello(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        comandi.add(tecnicaPremio);
+        JPanel gestionePartita = pannello(new FlowLayout(FlowLayout.LEFT, 6, 0));
         gestionePartita.add(nuovaPartita);
         gestionePartita.add(salva);
         gestionePartita.add(carica);
-        JPanel azioni = pannello(new BorderLayout());
-        azioni.add(comandi, BorderLayout.WEST);
-        azioni.add(gestionePartita, BorderLayout.EAST);
+        JPanel azioni = pannello(new GridLayout(2, 1, 0, 4));
+        azioni.add(comandi);
+        azioni.add(gestionePartita);
 
         JPanel inferiore = pannello(new BorderLayout(0, 10));
         inferiore.add(pannelloCronaca(), BorderLayout.CENTER);
@@ -122,23 +129,54 @@ public final class DuelloGrafico {
         radice.add(menu, "menu");
         radice.add(contenuto, "duello");
         finestra.setContentPane(radice);
+        tecnicaPremio.setText(descrivi(TecnicaPremio.RAGGIO_ANTIGRAVITA.attacco()));
         finestra.pack();
         int larghezzaMinima = azioni.getPreferredSize().width + 44 + finestra.getInsets().left
                 + finestra.getInsets().right;
-        finestra.setMinimumSize(new Dimension(Math.max(800, larghezzaMinima), 545));
+        tecnicaPremio.setVisible(false);
+        finestra.setMinimumSize(new Dimension(Math.max(800, larghezzaMinima), 595));
         finestra.setLocationRelativeTo(null);
         finestra.setVisible(true);
     }
 
     private void iniziaDuello(Tappa tappa) {
-        partita = new DuelloGoldrake(tappa);
+        mostraNuovoDuello(new DuelloGoldrake(tappa));
+    }
+
+    private void mostraNuovoDuello(DuelloGoldrake nuovoDuello) {
+        partita = nuovoDuello;
         cronaca.setText("%s%nTi sfida: %s. Scegli una mossa.%n"
-                .formatted(tappa.luogo, partita.nemico.getNome()));
+                .formatted(partita.tappa.luogo, partita.nemico.getNome()));
         aggiornaStato();
     }
 
     private void proseguiDopoDuello() {
-        partita.tappaDaGiocare().ifPresent(this::iniziaDuello);
+        if (!partita.deveSceglierePremio()) {
+            mostraNuovoDuello(partita.prosegui(Optional.empty()));
+            return;
+        }
+
+        TecnicaPremio[] premi = TecnicaPremio.values();
+        String[] opzioni = Arrays.stream(premi)
+                .map(premio -> descrivi(premio.attacco())).toArray(String[]::new);
+        int scelta = JOptionPane.showOptionDialog(prosegui,
+                "La tecnica scelta resterà con Goldrake.\n"
+                        + "Il duello in città sostituirà il salvataggio precedente.",
+                "Scegli una tecnica", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+                null, opzioni, null);
+        if (scelta < 0) {
+            return;
+        }
+
+        TecnicaPremio premio = premi[scelta];
+        DuelloGoldrake prossimo = partita.prosegui(Optional.of(premio));
+        try {
+            archivio.salva(prossimo);
+            mostraNuovoDuello(prossimo);
+            scrivi("Tecnica sbloccata: " + premio.attacco().getNome() + ". Partita salvata.");
+        } catch (IOException errore) {
+            scrivi("Impossibile salvare la tecnica. " + errore.getMessage());
+        }
     }
 
     private void salvaPartita() {
@@ -178,6 +216,8 @@ public final class DuelloGrafico {
         if (partita.isTerminato()) {
             if (partita.goldrake.isSconfitto()) {
                 scrivi("Sconfitta. Puoi riprovare questo duello.");
+            } else if (partita.deveSceglierePremio()) {
+                scrivi("Vittoria! Scegli una nuova tecnica per il prossimo duello.");
             } else if (partita.tappaDaGiocare().isEmpty()) {
                 scrivi("Campagna completata! La Terra è salva.");
             } else {
@@ -204,10 +244,20 @@ public final class DuelloGrafico {
         } else {
             esito.setText(duello + (sconfitto ? "  /  Sconfitta" : "  /  Vittoria"));
         }
-        prosegui.setText(sconfitto ? "Riprova duello" : "Prossimo duello");
+        if (partita.deveSceglierePremio()) {
+            prosegui.setText("Scegli tecnica");
+        } else {
+            prosegui.setText(sconfitto ? "Riprova duello" : "Prossimo duello");
+        }
         prosegui.setVisible(partita.tappaDaGiocare().isPresent());
         maglioPerforante.setEnabled(inCorso);
         alabardaSpaziale.setEnabled(inCorso);
+        partita.tecnicaPremio().ifPresentOrElse(premio -> {
+            Attacco attacco = premio.attacco();
+            tecnicaPremio.setText(descrivi(attacco));
+            tecnicaPremio.setEnabled(inCorso);
+            tecnicaPremio.setVisible(true);
+        }, () -> tecnicaPremio.setVisible(false));
         salva.setEnabled(partita.inAttesaDiMossa());
     }
 

@@ -5,6 +5,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Optional;
 import java.util.Properties;
 
 /** Legge e scrive lo stato del duello all'inizio di un turno di Goldrake. */
@@ -24,11 +25,12 @@ final class SalvataggioPartita {
         }
 
         Properties dati = new Properties();
-        dati.setProperty("versione", "2");
+        dati.setProperty("versione", "3");
         dati.setProperty("tappa", partita.tappa.name());
         dati.setProperty("vitaGoldrake", Integer.toString(partita.goldrake.getPuntiVita()));
         dati.setProperty("energiaGoldrake", Integer.toString(partita.goldrake.getEnergia()));
         dati.setProperty("vitaNemico", Integer.toString(partita.nemico.getPuntiVita()));
+        partita.tecnicaPremio().ifPresent(tecnica -> dati.setProperty("tecnicaPremio", tecnica.name()));
 
         Path cartella = Files.createDirectories(fileXml.getParent());
         Path temporaneo = Files.createTempFile(cartella, "partita-", ".tmp");
@@ -46,12 +48,16 @@ final class SalvataggioPartita {
     DuelloGoldrake carica() throws IOException {
         try {
             Properties dati = leggiSalvataggio();
-            Tappa tappa = switch (dati.getProperty("versione", "")) {
+            String versione = dati.getProperty("versione", "");
+            Tappa tappa = switch (versione) {
                 case "1" -> Tappa.LUNA;
-                case "2" -> Tappa.valueOf(dati.getProperty("tappa", ""));
+                case "2", "3" -> Tappa.valueOf(dati.getProperty("tappa", ""));
                 default -> throw new IllegalArgumentException("Versione del salvataggio non supportata");
             };
-            DuelloGoldrake partita = new DuelloGoldrake(tappa);
+            Optional<TecnicaPremio> tecnica = versione.equals("3")
+                    ? Optional.ofNullable(dati.getProperty("tecnicaPremio")).map(TecnicaPremio::valueOf)
+                    : Optional.empty();
+            DuelloGoldrake partita = new DuelloGoldrake(tappa, tecnica);
             int vitaGoldrake = leggi(dati, "vitaGoldrake", 1, partita.goldrake.getPuntiVitaMassimi());
             int energiaGoldrake = leggi(dati, "energiaGoldrake", 0, partita.goldrake.getEnergia());
             int vitaNemico = leggi(dati, "vitaNemico", 1, partita.nemico.getPuntiVitaMassimi());
