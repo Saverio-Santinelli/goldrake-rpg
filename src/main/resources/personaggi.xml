@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<personaggi>
+    <goldrake nome="Goldrake" puntiVita="100" energia="30"/>
+    <boss tappa="VALLE" nome="Esploratore di Vega" puntiVita="55" energia="10">
+        <contrattacco nome="Lame gemelle" danno="9"/>
+    </boss>
+    <boss tappa="CITTA" nome="Guardiano di Vega" puntiVita="70" energia="10">
+        <contrattacco nome="Raffica protonica" danno="12"/>
+    </boss>
+    <boss tappa="LUNA" nome="Mostro di Vega" puntiVita="80" energia="10">
+        <contrattacco nome="Artiglio lacerante" danno="15"/>
+    </boss>
+</personaggi>

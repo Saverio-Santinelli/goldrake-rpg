@@ -47,7 +47,7 @@ public final class DuelloGrafico {
     private final JButton salva = new PulsanteArcade("Salva partita", ACCIAIO);
     private final JButton prosegui = new PulsanteArcade("", ORO);
     private final SalvataggioPartita archivio = new SalvataggioPartita(
-            Path.of(System.getProperty("user.home"), ".goldrake-rpg", "partita.properties"));
+            Path.of(System.getProperty("user.home"), ".goldrake-rpg"));
     private MenuPrincipale menu;
 
     public static void main(String[] args) {
@@ -138,11 +138,7 @@ public final class DuelloGrafico {
     }
 
     private void proseguiDopoDuello() {
-        if (partita.goldrake.isSconfitto()) {
-            iniziaDuello(partita.tappa);
-        } else if (partita.nemico.isSconfitto() && partita.tappa != Tappa.LUNA) {
-            iniziaDuello(partita.tappa.successiva());
-        }
+        partita.tappaDaGiocare().ifPresent(this::iniziaDuello);
     }
 
     private void salvaPartita() {
@@ -169,21 +165,20 @@ public final class DuelloGrafico {
     }
 
     private void attacca(Attacco mossa) {
-        Combattimento duello = partita.combattimento;
-        if (!duello.attacca(mossa)) {
+        DuelloGoldrake.EsitoTurno turno = partita.giocaTurno(mossa);
+        if (turno == DuelloGoldrake.EsitoTurno.NON_ESEGUITO) {
             scrivi("Energia insufficiente. Scegli un'altra mossa.");
             return;
         }
         scrivi("Goldrake usa " + mossa.getNome() + ".");
-        if (!duello.isTerminato()) {
-            duello.attacca(partita.contrattacco);
+        if (turno == DuelloGoldrake.EsitoTurno.CON_CONTRATTACCO) {
             scrivi("%s contrattacca con %s.".formatted(
                     partita.nemico.getNome(), partita.contrattacco.getNome()));
         }
-        if (duello.isTerminato()) {
+        if (partita.isTerminato()) {
             if (partita.goldrake.isSconfitto()) {
                 scrivi("Sconfitta. Puoi riprovare questo duello.");
-            } else if (partita.tappa == Tappa.LUNA) {
+            } else if (partita.tappaDaGiocare().isEmpty()) {
                 scrivi("Campagna completata! La Terra è salva.");
             } else {
                 scrivi("Vittoria! Hai sbloccato il prossimo duello.");
@@ -201,7 +196,7 @@ public final class DuelloGrafico {
                 partita.nemico.getPuntiVitaMassimi());
         nomeNemico.setText(partita.nemico.getNome());
         arena.aggiorna(partita.tappa, partita.goldrake.isSconfitto(), partita.nemico.isSconfitto());
-        boolean inCorso = !partita.combattimento.isTerminato();
+        boolean inCorso = !partita.isTerminato();
         boolean sconfitto = partita.goldrake.isSconfitto();
         String duello = "Duello %d/%d".formatted(partita.tappa.ordinal() + 1, Tappa.values().length);
         if (inCorso) {
@@ -210,10 +205,10 @@ public final class DuelloGrafico {
             esito.setText(duello + (sconfitto ? "  /  Sconfitta" : "  /  Vittoria"));
         }
         prosegui.setText(sconfitto ? "Riprova duello" : "Prossimo duello");
-        prosegui.setVisible(!inCorso && (sconfitto || partita.tappa != Tappa.LUNA));
+        prosegui.setVisible(partita.tappaDaGiocare().isPresent());
         maglioPerforante.setEnabled(inCorso);
         alabardaSpaziale.setEnabled(inCorso);
-        salva.setEnabled(inCorso);
+        salva.setEnabled(partita.inAttesaDiMossa());
     }
 
     private JPanel pannelloCronaca() {

@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg129548;
 
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -9,15 +10,16 @@ import java.util.Properties;
 /** Legge e scrive lo stato del duello all'inizio di un turno di Goldrake. */
 final class SalvataggioPartita {
 
-    private final Path file;
+    private final Path fileXml;
+    private final Path filePrecedente;
 
-    SalvataggioPartita(Path file) {
-        this.file = file.toAbsolutePath();
+    SalvataggioPartita(Path cartella) {
+        this.fileXml = cartella.toAbsolutePath().resolve("partita.xml");
+        this.filePrecedente = fileXml.resolveSibling("partita.properties");
     }
 
     void salva(DuelloGoldrake partita) throws IOException {
-        if (partita.combattimento.isTerminato()
-                || partita.combattimento.getDiTurno() != partita.goldrake) {
+        if (!partita.inAttesaDiMossa()) {
             throw new IllegalStateException("Il salvataggio richiede un turno di Goldrake in corso");
         }
 
@@ -28,13 +30,13 @@ final class SalvataggioPartita {
         dati.setProperty("energiaGoldrake", Integer.toString(partita.goldrake.getEnergia()));
         dati.setProperty("vitaNemico", Integer.toString(partita.nemico.getPuntiVita()));
 
-        Path cartella = Files.createDirectories(file.getParent());
+        Path cartella = Files.createDirectories(fileXml.getParent());
         Path temporaneo = Files.createTempFile(cartella, "partita-", ".tmp");
         try {
             try (var uscita = Files.newOutputStream(temporaneo)) {
-                dati.store(uscita, "Goldrake RPG");
+                dati.storeToXML(uscita, "Goldrake RPG");
             }
-            Files.move(temporaneo, file, StandardCopyOption.ATOMIC_MOVE,
+            Files.move(temporaneo, fileXml, StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
         } finally {
             Files.deleteIfExists(temporaneo);
@@ -42,9 +44,8 @@ final class SalvataggioPartita {
     }
 
     DuelloGoldrake carica() throws IOException {
-        Properties dati = new Properties();
-        try (var ingresso = Files.newInputStream(file)) {
-            dati.load(ingresso);
+        try {
+            Properties dati = leggiSalvataggio();
             Tappa tappa = switch (dati.getProperty("versione", "")) {
                 case "1" -> Tappa.LUNA;
                 case "2" -> Tappa.valueOf(dati.getProperty("tappa", ""));
@@ -62,6 +63,18 @@ final class SalvataggioPartita {
         } catch (IllegalArgumentException errore) {
             throw new IOException("File di salvataggio non valido", errore);
         }
+    }
+
+    private Properties leggiSalvataggio() throws IOException {
+        Properties dati = new Properties();
+        try (var ingresso = Files.newInputStream(fileXml)) {
+            dati.loadFromXML(ingresso);
+        } catch (NoSuchFileException assente) {
+            try (var ingresso = Files.newInputStream(filePrecedente)) {
+                dati.load(ingresso);
+            }
+        }
+        return dati;
     }
 
     private static int leggi(Properties dati, String chiave, int minimo, int massimo) {
