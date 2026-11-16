@@ -21,7 +21,7 @@ La versione grafica include tre duelli, ciascuno con un'arena illustrata e un av
 
 Il repository include Gradle Wrapper: non è necessario installare Gradle separatamente.
 
-## Build e test
+## Compilazione
 
 Dalla cartella principale del progetto, su macOS o Linux:
 
@@ -35,12 +35,12 @@ Su Windows PowerShell:
 .\gradlew.bat build
 ```
 
-Attualmente non sono presenti test; verranno aggiunti durante lo sviluppo.
+Il progetto è stato verificato con una prova della campagna completa, inclusi la scelta della tecnica, il caricamento di un salvataggio XML con un attacco già annunciato e un nuovo tentativo dopo una sconfitta.
 
 ## Esecuzione
 
 Dalla cartella principale del progetto, apri il gioco con `./gradlew -q run` su macOS o Linux, oppure `.\gradlew.bat -q run` su Windows PowerShell.
-Dal menu principale puoi iniziare una **Nuova partita** nella valle montana, **Carica salvataggio** oppure uscire. Durante un duello, **Menu** apre la schermata iniziale e **Torna al duello** riprende lo scontro in corso.
+Dal menu principale puoi iniziare una **Nuova partita** nella valle montana, **Carica salvataggio**, aprire il briefing del Dottor Procton con **Come si gioca** oppure uscire. Durante un duello, **Menu** apre la schermata iniziale e **Torna al duello** riprende lo scontro in corso.
 Nel duello scegli **Maglio Perforante** o **Alabarda Spaziale** per attaccare. Dopo una vittoria, **Prossimo duello** sblocca la tappa seguente e ripristina vita ed energia. Dopo una sconfitta, **Riprova duello** ricomincia la stessa tappa.
 Quando sconfiggi il primo boss, premi **Scegli tecnica**. **Tuono Spaziale** infligge 45 danni e costa 30 energia. **Raggio Antigravità** infligge 18 danni e costa 10 energia. La scelta avvia e salva il duello in città. La tecnica rimane disponibile fino alla fine della campagna.
 Ogni boss prepara una mossa speciale diversa e la annuncia un turno prima. **Guardia** usa il turno per dimezzare il danno in arrivo (arrotondato per eccesso) e recuperare fino a 10 energia. Puoi anche attaccare per provare a sconfiggere il boss prima che usi la mossa speciale.
@@ -54,7 +54,7 @@ Premi `1` per il Maglio Perforante, `2` per l’Alabarda Spaziale, `3` per Guard
 
 ## Uso di strumenti di intelligenza artificiale
 
-È stato utilizzato ChatGPT come supporto alla configurazione di Git, GitHub, IntelliJ IDEA e Gradle, all’impostazione di Java 25, alla stesura di questo README e allo sviluppo del duello a turni, delle sue interfacce, del salvataggio e del catalogo XML dei personaggi.
+È stato utilizzato ChatGPT come supporto alla configurazione di Git, GitHub, IntelliJ IDEA e Gradle, all’impostazione di Java 25, alla stesura di questo README e allo sviluppo del duello a turni, delle sue interfacce, del salvataggio, del catalogo XML dei personaggi e del briefing Come si gioca.
 Gli sprite e gli sfondi delle arene e del menu sono stati realizzati con uno strumento di generazione di immagini.
 
 La dichiarazione sarà aggiornata durante lo sviluppo. Una descrizione dettagliata dell’uso degli strumenti di AI sarà mantenuta nella Wiki del repository.
