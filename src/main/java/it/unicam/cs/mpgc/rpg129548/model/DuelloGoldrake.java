@@ -1,40 +1,38 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.model;
 
 import java.util.Optional;
 
 /** Coordina il duello e il passaggio di tappa per le due interfacce. */
-final class DuelloGoldrake {
+public final class DuelloGoldrake {
 
-    static final int ENERGIA_GUARDIA = 10;
-    private static final CatalogoPersonaggi PERSONAGGI = CatalogoPersonaggi.carica();
+    public static final int ENERGIA_GUARDIA = 10;
+    private final ConfigurazioneDuelli configurazione;
 
-    final Tappa tappa;
-    final Combattente goldrake;
-    final Combattente nemico;
+    private final Tappa tappa;
+    private final Combattente goldrake;
+    private final Combattente nemico;
     private final Combattimento combattimento;
-    final Attacco maglioPerforante = new Attacco("Maglio Perforante", 10, 0);
-    final Attacco alabardaSpaziale = new Attacco("Alabarda Spaziale", 30, 20);
-    private final CatalogoPersonaggi.Avversario avversario;
+    private final Attacco maglioPerforante = new Attacco("Maglio Perforante", 10, 0);
+    private final Attacco alabardaSpaziale = new Attacco("Alabarda Spaziale", 30, 20);
+    private final ConfigurazioneDuelli.Avversario avversario;
     private final Optional<TecnicaPremio> tecnicaPremio;
     // Conta le risposte normali e il turno di carica fino alla prossima mossa speciale.
     private int faseBoss;
 
-    DuelloGoldrake(Tappa tappa) {
-        this(tappa, Optional.empty());
+    public DuelloGoldrake(ConfigurazioneDuelli configurazione, Tappa tappa) {
+        this(configurazione, tappa, Optional.empty(), 0);
     }
 
-    DuelloGoldrake(Tappa tappa, Optional<TecnicaPremio> tecnicaPremio) {
-        this(tappa, tecnicaPremio, 0);
-    }
-
-    DuelloGoldrake(Tappa tappa, Optional<TecnicaPremio> tecnicaPremio, int faseBoss) {
+    public DuelloGoldrake(ConfigurazioneDuelli configurazione, Tappa tappa,
+                         Optional<TecnicaPremio> tecnicaPremio, int faseBoss) {
+        this.configurazione = configurazione;
         if (tappa == Tappa.VALLE && tecnicaPremio.isPresent()) {
             throw new IllegalArgumentException("La tecnica premio si sblocca dopo la valle");
         }
         this.tappa = tappa;
         this.tecnicaPremio = tecnicaPremio;
-        goldrake = PERSONAGGI.goldrake().creaCombattente();
-        avversario = PERSONAGGI.avversario(tappa);
+        goldrake = configurazione.goldrake().creaCombattente();
+        avversario = configurazione.avversario(tappa);
         if (faseBoss < 0 || faseBoss > faseSpecialePronto()) {
             throw new IllegalArgumentException("Fase del boss non valida");
         }
@@ -43,7 +41,27 @@ final class DuelloGoldrake {
         combattimento = new Combattimento(goldrake, nemico);
     }
 
-    EsitoTurno giocaTurno(Attacco mossa) {
+    public Tappa tappa() {
+        return tappa;
+    }
+
+    public Combattente goldrake() {
+        return goldrake;
+    }
+
+    public Combattente nemico() {
+        return nemico;
+    }
+
+    public Attacco maglioPerforante() {
+        return maglioPerforante;
+    }
+
+    public Attacco alabardaSpaziale() {
+        return alabardaSpaziale;
+    }
+
+    public EsitoTurno giocaTurno(Attacco mossa) {
         boolean usaPremio = tecnicaPremio.map(premio -> premio.attacco() == mossa).orElse(false);
         if (mossa != maglioPerforante && mossa != alabardaSpaziale && !usaPremio) {
             throw new IllegalArgumentException("Mossa non disponibile per Goldrake");
@@ -57,7 +75,7 @@ final class DuelloGoldrake {
         return rispondi(false);
     }
 
-    EsitoTurno usaGuardia() {
+    public EsitoTurno usaGuardia() {
         if (!inAttesaDiMossa()) {
             return new EsitoTurno(false, Optional.empty());
         }
@@ -83,11 +101,11 @@ final class DuelloGoldrake {
         return new EsitoTurno(true, Optional.of(mossa));
     }
 
-    int faseBoss() {
+    public int faseBoss() {
         return faseBoss;
     }
 
-    Optional<String> avvisoSpeciale() {
+    public Optional<String> avvisoSpeciale() {
         if (!inAttesaDiMossa() || faseBoss != faseSpecialePronto()) {
             return Optional.empty();
         }
@@ -100,15 +118,15 @@ final class DuelloGoldrake {
         return avversario.speciale().turniNormali() + 1;
     }
 
-    boolean isTerminato() {
+    public boolean isTerminato() {
         return combattimento.isTerminato();
     }
 
-    boolean inAttesaDiMossa() {
+    public boolean inAttesaDiMossa() {
         return !isTerminato() && combattimento.getDiTurno() == goldrake;
     }
 
-    Optional<Tappa> tappaDaGiocare() {
+    public Optional<Tappa> tappaDaGiocare() {
         if (goldrake.isSconfitto()) {
             return Optional.of(tappa);
         }
@@ -118,23 +136,23 @@ final class DuelloGoldrake {
         return Optional.empty();
     }
 
-    Optional<TecnicaPremio> tecnicaPremio() {
+    public Optional<TecnicaPremio> tecnicaPremio() {
         return tecnicaPremio;
     }
 
-    boolean deveSceglierePremio() {
+    public boolean deveSceglierePremio() {
         return tappa == Tappa.VALLE && nemico.isSconfitto() && !goldrake.isSconfitto();
     }
 
-    DuelloGoldrake prosegui(Optional<TecnicaPremio> scelta) {
+    public DuelloGoldrake prosegui(Optional<TecnicaPremio> scelta) {
         Tappa destinazione = tappaDaGiocare()
                 .orElseThrow(() -> new IllegalStateException("Nessun duello da iniziare"));
         if (scelta.isPresent() != deveSceglierePremio()) {
             throw new IllegalArgumentException("La scelta è richiesta solo dopo la vittoria nella valle");
         }
-        return new DuelloGoldrake(destinazione, scelta.or(() -> tecnicaPremio));
+        return new DuelloGoldrake(configurazione, destinazione, scelta.or(() -> tecnicaPremio), 0);
     }
 
-    record EsitoTurno(boolean eseguito, Optional<Attacco> rispostaBoss) {
+    public record EsitoTurno(boolean eseguito, Optional<Attacco> rispostaBoss) {
     }
 }

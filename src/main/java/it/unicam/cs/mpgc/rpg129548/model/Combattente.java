@@ -1,4 +1,4 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.model;
 
 /**
  * Rappresenta un partecipante al combattimento e ne conserva i punti vita.

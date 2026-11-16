@@ -1,15 +1,19 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.model;
 
 /** Luoghi e ordine dei duelli della campagna. */
-enum Tappa {
+public enum Tappa {
     VALLE("Terra / Valle montana"),
     CITTA("Terra / Città di notte"),
     LUNA("Luna / Base di Vega");
 
-    final String luogo;
+    private final String luogo;
 
     Tappa(String luogo) {
         this.luogo = luogo;
+    }
+
+    public String luogo() {
+        return luogo;
     }
 
     Tappa successiva() {

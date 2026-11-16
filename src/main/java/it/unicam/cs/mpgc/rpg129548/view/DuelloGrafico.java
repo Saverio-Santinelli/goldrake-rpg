@@ -1,4 +1,12 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.view;
+
+import it.unicam.cs.mpgc.rpg129548.model.Attacco;
+import it.unicam.cs.mpgc.rpg129548.model.ConfigurazioneDuelli;
+import it.unicam.cs.mpgc.rpg129548.model.DuelloGoldrake;
+import it.unicam.cs.mpgc.rpg129548.model.Tappa;
+import it.unicam.cs.mpgc.rpg129548.model.TecnicaPremio;
+import it.unicam.cs.mpgc.rpg129548.persistence.CatalogoPersonaggi;
+import it.unicam.cs.mpgc.rpg129548.persistence.SalvataggioPartita;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -7,6 +15,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -37,7 +47,8 @@ public final class DuelloGrafico {
     private static final Color ORO = new Color(0xF5C66B);
     private static final Color ACCIAIO = new Color(0x8499B6);
 
-    private DuelloGoldrake partita = new DuelloGoldrake(Tappa.VALLE);
+    private final ConfigurazioneDuelli configurazione = CatalogoPersonaggi.carica();
+    private DuelloGoldrake partita = new DuelloGoldrake(configurazione, Tappa.VALLE);
     private final Arena arena = new Arena();
     private final JLabel esito = etichetta("Il tuo turno", 14, AZZURRO);
     private final JLabel avvisoSpeciale = etichetta("", 13, ORO);
@@ -46,15 +57,16 @@ public final class DuelloGrafico {
     private final JProgressBar energiaGoldrake = barra(ORO);
     private final JProgressBar vitaNemico = barra(VIOLA);
     private final JTextArea cronaca = new JTextArea(4, 44);
-    private final JButton maglioPerforante = new PulsanteArcade(descrivi(partita.maglioPerforante), ROSSO);
-    private final JButton alabardaSpaziale = new PulsanteArcade(descrivi(partita.alabardaSpaziale), ORO);
+    private final JButton maglioPerforante = new PulsanteArcade(descrivi(partita.maglioPerforante()), ROSSO);
+    private final JButton alabardaSpaziale = new PulsanteArcade(descrivi(partita.alabardaSpaziale()), ORO);
     private final JButton tecnicaPremio = new PulsanteArcade("", VIOLA);
     private final JButton guardia = new PulsanteArcade("Guardia", AZZURRO);
     private final JButton salva = new PulsanteArcade("Salva partita", ACCIAIO);
     private final JButton prosegui = new PulsanteArcade("", ORO);
-    private final SalvataggioPartita archivio = new SalvataggioPartita(
+    private final SalvataggioPartita archivio = new SalvataggioPartita(configurazione,
             Path.of(System.getProperty("user.home"), ".goldrake-rpg"));
     private MenuPrincipale menu;
+    private boolean progressiDaSalvare;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new DuelloGrafico().mostra());
@@ -62,19 +74,33 @@ public final class DuelloGrafico {
 
     private void mostra() {
         JFrame finestra = new JFrame("Goldrake RPG");
-        finestra.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        finestra.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        Runnable esci = () -> {
+            if (confermaAbbandono(finestra, "Esci")) {
+                finestra.dispose();
+            }
+        };
+        finestra.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent evento) {
+                esci.run();
+            }
+        });
 
         CardLayout schermate = new CardLayout();
         JPanel radice = new JPanel(schermate);
         Runnable mostraDuello = () -> schermate.show(radice, "duello");
         menu = new MenuPrincipale(() -> {
-            iniziaDuello(Tappa.VALLE);
-            mostraDuello.run();
-        }, () -> {
-            if (caricaPartita(menu::mostraMessaggio)) {
+            if (confermaAbbandono(finestra, "Nuova partita")) {
+                iniziaDuello(Tappa.VALLE);
                 mostraDuello.run();
             }
-        }, mostraDuello, () -> schermate.show(radice, "briefing"), finestra::dispose);
+        }, () -> {
+            if (confermaAbbandono(finestra, "Carica salvataggio")
+                    && caricaPartita(menu::mostraMessaggio)) {
+                mostraDuello.run();
+            }
+        }, mostraDuello, () -> schermate.show(radice, "briefing"), esci);
 
         JPanel contenuto = pannello(new BorderLayout(0, 14));
         contenuto.setBorder(BorderFactory.createEmptyBorder(18, 22, 18, 22));
@@ -105,17 +131,25 @@ public final class DuelloGrafico {
         JButton carica = new PulsanteArcade("Carica salvataggio", AZZURRO);
         salva.setToolTipText("Registra la tappa, i punti vita e l'energia attuali.");
         carica.setToolTipText("Riprendi dall'ultima volta che hai premuto Salva partita.");
-        maglioPerforante.addActionListener(evento -> attacca(partita.maglioPerforante));
-        alabardaSpaziale.addActionListener(evento -> attacca(partita.alabardaSpaziale));
+        maglioPerforante.addActionListener(evento -> attacca(partita.maglioPerforante()));
+        alabardaSpaziale.addActionListener(evento -> attacca(partita.alabardaSpaziale()));
         tecnicaPremio.addActionListener(evento -> partita.tecnicaPremio()
                 .map(TecnicaPremio::attacco).ifPresent(this::attacca));
         guardia.setToolTipText("Dimezza il danno in arrivo e recupera fino a %d energia."
                 .formatted(DuelloGoldrake.ENERGIA_GUARDIA));
         guardia.addActionListener(evento -> mostraTurno(partita.usaGuardia(), "Goldrake si mette in guardia."));
-        nuovaPartita.addActionListener(evento -> iniziaDuello(Tappa.VALLE));
+        nuovaPartita.addActionListener(evento -> {
+            if (confermaAbbandono(finestra, "Nuova partita")) {
+                iniziaDuello(Tappa.VALLE);
+            }
+        });
         prosegui.addActionListener(evento -> proseguiDopoDuello());
         salva.addActionListener(evento -> salvaPartita());
-        carica.addActionListener(evento -> caricaPartita(this::scrivi));
+        carica.addActionListener(evento -> {
+            if (confermaAbbandono(finestra, "Carica salvataggio")) {
+                caricaPartita(this::scrivi);
+            }
+        });
         JPanel comandi = pannello(new FlowLayout(FlowLayout.LEFT, 6, 0));
         comandi.add(maglioPerforante);
         comandi.add(alabardaSpaziale);
@@ -148,20 +182,33 @@ public final class DuelloGrafico {
         finestra.setVisible(true);
     }
 
+    private boolean confermaAbbandono(JFrame finestra, String azione) {
+        if (!progressiDaSalvare) {
+            return true;
+        }
+        Object[] opzioni = {"Annulla", azione};
+        return JOptionPane.showOptionDialog(finestra,
+                "Hai progressi non salvati. Vuoi continuare senza salvarli?",
+                "Progressi non salvati", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+                null, opzioni, opzioni[0]) == 1;
+    }
+
     private void iniziaDuello(Tappa tappa) {
-        mostraNuovoDuello(new DuelloGoldrake(tappa));
+        progressiDaSalvare = false;
+        mostraNuovoDuello(new DuelloGoldrake(configurazione, tappa));
     }
 
     private void mostraNuovoDuello(DuelloGoldrake nuovoDuello) {
         partita = nuovoDuello;
         cronaca.setText("%s%nTi sfida: %s. Scegli una mossa.%n"
-                .formatted(partita.tappa.luogo, partita.nemico.getNome()));
+                .formatted(partita.tappa().luogo(), partita.nemico().getNome()));
         aggiornaStato();
     }
 
     private void proseguiDopoDuello() {
         if (!partita.deveSceglierePremio()) {
             mostraNuovoDuello(partita.prosegui(Optional.empty()));
+            progressiDaSalvare = true;
             return;
         }
 
@@ -181,6 +228,7 @@ public final class DuelloGrafico {
         DuelloGoldrake prossimo = partita.prosegui(Optional.of(premio));
         try {
             archivio.salva(prossimo);
+            progressiDaSalvare = false;
             mostraNuovoDuello(prossimo);
             scrivi("Tecnica sbloccata: " + premio.attacco().getNome() + ". Partita salvata.");
         } catch (IOException errore) {
@@ -191,6 +239,7 @@ public final class DuelloGrafico {
     private void salvaPartita() {
         try {
             archivio.salva(partita);
+            progressiDaSalvare = false;
             scrivi("Partita salvata.");
         } catch (IOException errore) {
             scrivi("Impossibile salvare la partita. " + errore.getMessage());
@@ -200,7 +249,8 @@ public final class DuelloGrafico {
     private boolean caricaPartita(Consumer<String> mostraErrore) {
         try {
             partita = archivio.carica();
-            cronaca.setText("Partita caricata: %s. Scegli una mossa.%n".formatted(partita.tappa.luogo));
+            progressiDaSalvare = false;
+            cronaca.setText("Partita caricata: %s. Scegli una mossa.%n".formatted(partita.tappa().luogo()));
             aggiornaStato();
             return true;
         } catch (NoSuchFileException errore) {
@@ -224,11 +274,12 @@ public final class DuelloGrafico {
         if (!turno.eseguito()) {
             return;
         }
+        progressiDaSalvare = true;
         scrivi(azione);
         turno.rispostaBoss().ifPresent(mossa -> scrivi("%s usa %s (%d danni).".formatted(
-                partita.nemico.getNome(), mossa.getNome(), mossa.getDanno())));
+                partita.nemico().getNome(), mossa.getNome(), mossa.getDanno())));
         if (partita.isTerminato()) {
-            if (partita.goldrake.isSconfitto()) {
+            if (partita.goldrake().isSconfitto()) {
                 scrivi("Sconfitta. Puoi riprovare questo duello.");
             } else if (partita.deveSceglierePremio()) {
                 scrivi("Vittoria! Scegli una nuova tecnica per il prossimo duello.");
@@ -242,20 +293,20 @@ public final class DuelloGrafico {
     }
 
     private void aggiornaStato() {
-        aggiornaBarra(vitaGoldrake, "Vita", partita.goldrake.getPuntiVita(),
-                partita.goldrake.getPuntiVitaMassimi());
-        aggiornaBarra(energiaGoldrake, "Energia", partita.goldrake.getEnergia(),
-                partita.goldrake.getEnergiaMassima());
-        aggiornaBarra(vitaNemico, "Vita", partita.nemico.getPuntiVita(),
-                partita.nemico.getPuntiVitaMassimi());
-        nomeNemico.setText(partita.nemico.getNome());
-        arena.aggiorna(partita.tappa, partita.goldrake.isSconfitto(), partita.nemico.isSconfitto());
+        aggiornaBarra(vitaGoldrake, "Vita", partita.goldrake().getPuntiVita(),
+                partita.goldrake().getPuntiVitaMassimi());
+        aggiornaBarra(energiaGoldrake, "Energia", partita.goldrake().getEnergia(),
+                partita.goldrake().getEnergiaMassima());
+        aggiornaBarra(vitaNemico, "Vita", partita.nemico().getPuntiVita(),
+                partita.nemico().getPuntiVitaMassimi());
+        nomeNemico.setText(partita.nemico().getNome());
+        arena.aggiorna(partita.tappa(), partita.goldrake().isSconfitto(), partita.nemico().isSconfitto());
         boolean inCorso = !partita.isTerminato();
         String avviso = partita.avvisoSpeciale().orElse("");
         avvisoSpeciale.setText(avviso);
         avvisoSpeciale.setVisible(!avviso.isEmpty());
-        boolean sconfitto = partita.goldrake.isSconfitto();
-        String duello = "Duello %d/%d".formatted(partita.tappa.ordinal() + 1, Tappa.values().length);
+        boolean sconfitto = partita.goldrake().isSconfitto();
+        String duello = "Duello %d/%d".formatted(partita.tappa().ordinal() + 1, Tappa.values().length);
         if (inCorso) {
             esito.setText(duello + "  /  Il tuo turno");
         } else {

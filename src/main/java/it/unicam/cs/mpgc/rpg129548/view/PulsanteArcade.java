@@ -1,4 +1,4 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.view;
 
 import java.awt.Color;
 import java.awt.Font;

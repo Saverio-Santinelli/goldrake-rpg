@@ -1,4 +1,4 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.model;
 
 /**
  * Descrive un attacco con danno e costo energetico fissi.

@@ -1,4 +1,9 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.persistence;
+
+import it.unicam.cs.mpgc.rpg129548.model.ConfigurazioneDuelli;
+import it.unicam.cs.mpgc.rpg129548.model.DuelloGoldrake;
+import it.unicam.cs.mpgc.rpg129548.model.Tappa;
+import it.unicam.cs.mpgc.rpg129548.model.TecnicaPremio;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
@@ -9,27 +14,29 @@ import java.util.Optional;
 import java.util.Properties;
 
 /** Legge e scrive lo stato del duello all'inizio di un turno di Goldrake. */
-final class SalvataggioPartita {
+public final class SalvataggioPartita {
 
+    private final ConfigurazioneDuelli configurazione;
     private final Path fileXml;
     private final Path filePrecedente;
 
-    SalvataggioPartita(Path cartella) {
+    public SalvataggioPartita(ConfigurazioneDuelli configurazione, Path cartella) {
+        this.configurazione = configurazione;
         this.fileXml = cartella.toAbsolutePath().resolve("partita.xml");
         this.filePrecedente = fileXml.resolveSibling("partita.properties");
     }
 
-    void salva(DuelloGoldrake partita) throws IOException {
+    public void salva(DuelloGoldrake partita) throws IOException {
         if (!partita.inAttesaDiMossa()) {
             throw new IllegalStateException("Il salvataggio richiede un turno di Goldrake in corso");
         }
 
         Properties dati = new Properties();
         dati.setProperty("versione", "4");
-        dati.setProperty("tappa", partita.tappa.name());
-        dati.setProperty("vitaGoldrake", Integer.toString(partita.goldrake.getPuntiVita()));
-        dati.setProperty("energiaGoldrake", Integer.toString(partita.goldrake.getEnergia()));
-        dati.setProperty("vitaNemico", Integer.toString(partita.nemico.getPuntiVita()));
+        dati.setProperty("tappa", partita.tappa().name());
+        dati.setProperty("vitaGoldrake", Integer.toString(partita.goldrake().getPuntiVita()));
+        dati.setProperty("energiaGoldrake", Integer.toString(partita.goldrake().getEnergia()));
+        dati.setProperty("vitaNemico", Integer.toString(partita.nemico().getPuntiVita()));
         dati.setProperty("faseBoss", Integer.toString(partita.faseBoss()));
         partita.tecnicaPremio().ifPresent(tecnica -> dati.setProperty("tecnicaPremio", tecnica.name()));
 
@@ -46,7 +53,7 @@ final class SalvataggioPartita {
         }
     }
 
-    DuelloGoldrake carica() throws IOException {
+    public DuelloGoldrake carica() throws IOException {
         try {
             Properties dati = leggiSalvataggio();
             String versione = dati.getProperty("versione", "");
@@ -59,14 +66,14 @@ final class SalvataggioPartita {
                     ? Optional.ofNullable(dati.getProperty("tecnicaPremio")).map(TecnicaPremio::valueOf)
                     : Optional.empty();
             int faseBoss = versione.equals("4") ? Integer.parseInt(dati.getProperty("faseBoss")) : 0;
-            DuelloGoldrake partita = new DuelloGoldrake(tappa, tecnica, faseBoss);
-            int vitaGoldrake = leggi(dati, "vitaGoldrake", 1, partita.goldrake.getPuntiVitaMassimi());
-            int energiaGoldrake = leggi(dati, "energiaGoldrake", 0, partita.goldrake.getEnergia());
-            int vitaNemico = leggi(dati, "vitaNemico", 1, partita.nemico.getPuntiVitaMassimi());
+            DuelloGoldrake partita = new DuelloGoldrake(configurazione, tappa, tecnica, faseBoss);
+            int vitaGoldrake = leggi(dati, "vitaGoldrake", 1, partita.goldrake().getPuntiVitaMassimi());
+            int energiaGoldrake = leggi(dati, "energiaGoldrake", 0, partita.goldrake().getEnergia());
+            int vitaNemico = leggi(dati, "vitaNemico", 1, partita.nemico().getPuntiVitaMassimi());
 
-            partita.goldrake.subisciDanno(partita.goldrake.getPuntiVita() - vitaGoldrake);
-            partita.goldrake.consumaEnergia(partita.goldrake.getEnergia() - energiaGoldrake);
-            partita.nemico.subisciDanno(partita.nemico.getPuntiVita() - vitaNemico);
+            partita.goldrake().subisciDanno(partita.goldrake().getPuntiVita() - vitaGoldrake);
+            partita.goldrake().consumaEnergia(partita.goldrake().getEnergia() - energiaGoldrake);
+            partita.nemico().subisciDanno(partita.nemico().getPuntiVita() - vitaNemico);
             return partita;
         } catch (IllegalArgumentException errore) {
             throw new IOException("File di salvataggio non valido", errore);

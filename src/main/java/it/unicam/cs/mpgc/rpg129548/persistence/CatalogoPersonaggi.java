@@ -1,4 +1,11 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.persistence;
+
+import it.unicam.cs.mpgc.rpg129548.model.Attacco;
+import it.unicam.cs.mpgc.rpg129548.model.ConfigurazioneDuelli;
+import it.unicam.cs.mpgc.rpg129548.model.ConfigurazioneDuelli.AttaccoSpeciale;
+import it.unicam.cs.mpgc.rpg129548.model.ConfigurazioneDuelli.Avversario;
+import it.unicam.cs.mpgc.rpg129548.model.ConfigurazioneDuelli.Profilo;
+import it.unicam.cs.mpgc.rpg129548.model.Tappa;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,19 +19,14 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /** Carica le statistiche iniziali e i contrattacchi dal catalogo XML del gioco. */
-final class CatalogoPersonaggi {
+public final class CatalogoPersonaggi {
 
     private static final String RISORSA = "/personaggi.xml";
 
-    private final Profilo goldrake;
-    private final Map<Tappa, Avversario> avversari;
-
-    private CatalogoPersonaggi(Profilo goldrake, Map<Tappa, Avversario> avversari) {
-        this.goldrake = goldrake;
-        this.avversari = Map.copyOf(avversari);
+    private CatalogoPersonaggi() {
     }
 
-    static CatalogoPersonaggi carica() {
+    public static ConfigurazioneDuelli carica() {
         try (InputStream xml = CatalogoPersonaggi.class.getResourceAsStream(RISORSA)) {
             if (xml == null) {
                 throw new IOException("Risorsa mancante: " + RISORSA);
@@ -38,7 +40,7 @@ final class CatalogoPersonaggi {
             if (!radice.getTagName().equals("personaggi")) {
                 throw new IllegalArgumentException("Elemento principale atteso: personaggi");
             }
-            return new CatalogoPersonaggi(leggiProfilo(elementoUnico(radice, "goldrake")),
+            return new ConfigurazioneDuelli(leggiProfilo(elementoUnico(radice, "goldrake")),
                     leggiAvversari(radice));
         } catch (IOException | ParserConfigurationException | SAXException | IllegalArgumentException errore) {
             throw new IllegalStateException("Impossibile caricare " + RISORSA + ": " + errore.getMessage(),
@@ -93,34 +95,4 @@ final class CatalogoPersonaggi {
         }
     }
 
-    Profilo goldrake() {
-        return goldrake;
-    }
-
-    Avversario avversario(Tappa tappa) {
-        return avversari.get(tappa);
-    }
-
-    record Profilo(String nome, int puntiVita, int energia) {
-        Profilo {
-            if (nome.isBlank() || puntiVita <= 0 || energia <= 0) {
-                throw new IllegalArgumentException("Profilo non valido: " + nome);
-            }
-        }
-
-        Combattente creaCombattente() {
-            return new Combattente(nome, puntiVita, energia);
-        }
-    }
-
-    record Avversario(Profilo profilo, Attacco contrattacco, AttaccoSpeciale speciale) {
-    }
-
-    record AttaccoSpeciale(Attacco mossa, int turniNormali, String avviso) {
-        AttaccoSpeciale {
-            if (turniNormali < 1 || turniNormali == Integer.MAX_VALUE || avviso.isBlank()) {
-                throw new IllegalArgumentException("Configurazione della mossa speciale non valida");
-            }
-        }
-    }
 }

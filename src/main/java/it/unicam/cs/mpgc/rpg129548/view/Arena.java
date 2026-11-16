@@ -1,4 +1,6 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.view;
+
+import it.unicam.cs.mpgc.rpg129548.model.Tappa;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -60,7 +62,7 @@ final class Arena extends JComponent {
             disegnaCombattente(g, GOLDRAKE, 245, goldrakeSconfitto);
             disegnaCombattente(g, scena.nemico(), 675, nemicoSconfitto);
             g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
-            scriviAlCentro(g, tappa.luogo.toUpperCase(Locale.ROOT), 30);
+            scriviAlCentro(g, tappa.luogo().toUpperCase(Locale.ROOT), 30);
             g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
             scriviAlCentro(g, "VS", 145);
         } finally {

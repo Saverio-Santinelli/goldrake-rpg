@@ -3,12 +3,12 @@ plugins {
 }
 
 application {
-    mainClass.set("it.unicam.cs.mpgc.rpg129548.DuelloGrafico")
+    mainClass.set("it.unicam.cs.mpgc.rpg129548.view.DuelloGrafico")
 }
 
 tasks.register<JavaExec>("runConsole") {
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("it.unicam.cs.mpgc.rpg129548.DuelloConsole")
+    mainClass.set("it.unicam.cs.mpgc.rpg129548.view.DuelloConsole")
     javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
     standardInput = System.`in`
 }

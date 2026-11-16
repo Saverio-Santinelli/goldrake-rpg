@@ -1,15 +1,21 @@
-package it.unicam.cs.mpgc.rpg129548;
+package it.unicam.cs.mpgc.rpg129548.view;
+
+import it.unicam.cs.mpgc.rpg129548.model.Attacco;
+import it.unicam.cs.mpgc.rpg129548.model.Combattente;
+import it.unicam.cs.mpgc.rpg129548.model.DuelloGoldrake;
+import it.unicam.cs.mpgc.rpg129548.model.Tappa;
+import it.unicam.cs.mpgc.rpg129548.persistence.CatalogoPersonaggi;
 
 import java.util.Scanner;
 
 public class DuelloConsole {
 
     public static void main(String[] args) {
-        DuelloGoldrake partita = new DuelloGoldrake(Tappa.LUNA);
-        Combattente goldrake = partita.goldrake;
-        Combattente nemico = partita.nemico;
-        Attacco maglioPerforante = partita.maglioPerforante;
-        Attacco alabardaSpaziale = partita.alabardaSpaziale;
+        DuelloGoldrake partita = new DuelloGoldrake(CatalogoPersonaggi.carica(), Tappa.LUNA);
+        Combattente goldrake = partita.goldrake();
+        Combattente nemico = partita.nemico();
+        Attacco maglioPerforante = partita.maglioPerforante();
+        Attacco alabardaSpaziale = partita.alabardaSpaziale();
 
         System.out.println("Goldrake RPG - Duello contro il " + nemico.getNome());
         try (Scanner terminale = new Scanner(System.in)) {
