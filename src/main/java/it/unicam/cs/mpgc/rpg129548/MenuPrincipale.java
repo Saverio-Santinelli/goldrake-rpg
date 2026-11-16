@@ -33,7 +33,7 @@ final class MenuPrincipale extends JPanel {
     private final JTextArea messaggio = new JTextArea(2, 22);
     private final JButton tornaAlDuello;
 
-    MenuPrincipale(Runnable nuova, Runnable carica, Runnable torna, Runnable esci) {
+    MenuPrincipale(Runnable nuova, Runnable carica, Runnable torna, Runnable briefing, Runnable esci) {
         super(new GridBagLayout());
         setBackground(new Color(0x0D1424));
 
@@ -48,6 +48,7 @@ final class MenuPrincipale extends JPanel {
         tornaAlDuello.setVisible(false);
         aggiungiPulsante(colonna, "Nuova partita", ORO, nuova);
         aggiungiPulsante(colonna, "Carica salvataggio", AZZURRO, carica);
+        aggiungiPulsante(colonna, "Come si gioca", AZZURRO, briefing);
         aggiungiPulsante(colonna, "Esci", ACCIAIO, esci);
 
         messaggio.setEditable(false);

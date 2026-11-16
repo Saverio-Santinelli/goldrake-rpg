@@ -74,7 +74,7 @@ public final class DuelloGrafico {
             if (caricaPartita(menu::mostraMessaggio)) {
                 mostraDuello.run();
             }
-        }, mostraDuello, finestra::dispose);
+        }, mostraDuello, () -> schermate.show(radice, "briefing"), finestra::dispose);
 
         JPanel contenuto = pannello(new BorderLayout(0, 14));
         contenuto.setBorder(BorderFactory.createEmptyBorder(18, 22, 18, 22));
@@ -136,6 +136,7 @@ public final class DuelloGrafico {
 
         radice.add(menu, "menu");
         radice.add(contenuto, "duello");
+        radice.add(new Briefing(() -> schermate.show(radice, "menu")), "briefing");
         finestra.setContentPane(radice);
         tecnicaPremio.setText(descrivi(TecnicaPremio.RAGGIO_ANTIGRAVITA.attacco()));
         finestra.pack();
