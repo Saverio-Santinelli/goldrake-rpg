@@ -62,6 +62,8 @@ Se hai progressi non salvati, il gioco chiede conferma prima di uscire, iniziare
 Durante un duello, **Salva partita** aggiorna il salvataggio in `.goldrake-rpg/partita.xml` nella cartella utente.
 **Carica salvataggio** ripristina la tappa, la vita dei combattenti, l'energia di Goldrake, l'eventuale tecnica scelta e la fase del boss, compreso un attacco già annunciato. Se il file XML è assente, il gioco può leggere il precedente `partita.properties`. I salvataggi della versione a duello singolo riprendono dalla Luna.
 
+Dopo la vittoria sulla Luna, **Statistiche della campagna** mostra i danni effettivi e il numero di mosse riuscite nei tre tentativi vinti. I salvataggi più vecchi possono mostrare conteggi parziali o assenti.
+
 Le statistiche iniziali di Goldrake e dei tre boss, insieme ai contrattacchi dei boss, sono definite in [personaggi.xml](src/main/resources/personaggi.xml). Il gioco legge questo catalogo all'avvio.
 
 Per giocare dal terminale usa `./gradlew -q runConsole` oppure `.\gradlew.bat -q runConsole` su Windows.

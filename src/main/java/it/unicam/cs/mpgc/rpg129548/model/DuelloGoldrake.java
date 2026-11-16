@@ -1,5 +1,7 @@
 package it.unicam.cs.mpgc.rpg129548.model;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
 
 /** Coordina il duello e il passaggio di tappa per le due interfacce. */
@@ -18,6 +20,12 @@ public final class DuelloGoldrake {
     private final Optional<TecnicaPremio> tecnicaPremio;
     // Conta le risposte normali e il turno di carica fino alla prossima mossa speciale.
     private int faseBoss;
+    private final Map<Tappa, StatisticheDuello> duelliVinti = new EnumMap<>(Tappa.class);
+    private int magli;
+    private int alabarde;
+    private int tecniche;
+    private int guardie;
+    private boolean conteggioCompleto = true;
 
     public DuelloGoldrake(ConfigurazioneDuelli configurazione, Tappa tappa) {
         this(configurazione, tappa, Optional.empty(), 0);
@@ -69,6 +77,13 @@ public final class DuelloGoldrake {
         if (!inAttesaDiMossa() || !combattimento.attacca(mossa)) {
             return new EsitoTurno(false, Optional.empty());
         }
+        if (mossa == maglioPerforante) {
+            magli++;
+        } else if (mossa == alabardaSpaziale) {
+            alabarde++;
+        } else {
+            tecniche++;
+        }
         if (combattimento.isTerminato()) {
             return new EsitoTurno(true, Optional.empty());
         }
@@ -79,6 +94,7 @@ public final class DuelloGoldrake {
         if (!inAttesaDiMossa()) {
             return new EsitoTurno(false, Optional.empty());
         }
+        guardie++;
         goldrake.ricaricaEnergia(ENERGIA_GUARDIA);
         combattimento.passaTurno();
         return rispondi(true);
@@ -150,7 +166,41 @@ public final class DuelloGoldrake {
         if (scelta.isPresent() != deveSceglierePremio()) {
             throw new IllegalArgumentException("La scelta è richiesta solo dopo la vittoria nella valle");
         }
-        return new DuelloGoldrake(configurazione, destinazione, scelta.or(() -> tecnicaPremio), 0);
+        var prossimo = new DuelloGoldrake(configurazione, destinazione, scelta.or(() -> tecnicaPremio), 0);
+        prossimo.duelliVinti.putAll(duelliVinti);
+        if (nemico.isSconfitto()) {
+            prossimo.duelliVinti.put(tappa, statisticheCorrenti());
+        }
+        return prossimo;
+    }
+
+    private StatisticheDuello statisticheCorrenti() {
+        return new StatisticheDuello(nemico.getPuntiVitaMassimi() - nemico.getPuntiVita(),
+                goldrake.getPuntiVitaMassimi() - goldrake.getPuntiVita(),
+                magli, alabarde, tecniche, guardie, conteggioCompleto);
+    }
+
+    public Map<Tappa, StatisticheDuello> statisticheCampagna() {
+        Map<Tappa, StatisticheDuello> riepilogo = new EnumMap<>(Tappa.class);
+        riepilogo.putAll(duelliVinti);
+        riepilogo.put(tappa, statisticheCorrenti());
+        return Map.copyOf(riepilogo);
+    }
+
+    public void ripristinaStatistiche(Map<Tappa, StatisticheDuello> statistiche) {
+        statistiche.forEach((tappaSalvata, dati) -> {
+            if (tappaSalvata.ordinal() < tappa.ordinal()) {
+                duelliVinti.put(tappaSalvata, dati);
+            }
+        });
+        StatisticheDuello correnti = statistiche.get(tappa);
+        conteggioCompleto = correnti != null && correnti.conteggioCompleto();
+        if (correnti != null) {
+            magli = correnti.magli();
+            alabarde = correnti.alabarde();
+            tecniche = correnti.tecniche();
+            guardie = correnti.guardie();
+        }
     }
 
     public record EsitoTurno(boolean eseguito, Optional<Attacco> rispostaBoss) {

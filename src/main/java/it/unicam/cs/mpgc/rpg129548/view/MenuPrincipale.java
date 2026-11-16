@@ -68,8 +68,8 @@ final class MenuPrincipale extends JPanel {
         add(colonna, posizione);
     }
 
-    void abilitaRitornoAlDuello() {
-        tornaAlDuello.setVisible(true);
+    void impostaRitornoAlDuello(boolean disponibile) {
+        tornaAlDuello.setVisible(disponibile);
         mostraMessaggio("");
     }
 
