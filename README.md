@@ -71,16 +71,15 @@ Premi `1` per il Maglio Perforante, `2` per l’Alabarda Spaziale, `3` per Guard
 
 ## Uso di strumenti di intelligenza artificiale
 
-Durante lo sviluppo, ChatGPT è stato usato per discutere le scelte progettuali, scrivere e rivedere parti del codice, analizzare gli errori e verificare il comportamento del gioco.
+Durante la realizzazione del progetto è stato utilizzato ChatGPT come strumento di supporto allo sviluppo e alla revisione. Il contributo personale dell’autore ha riguardato la scelta del tema e delle funzionalità, la valutazione delle proposte e dell’interfaccia e le prove manuali del gioco. ChatGPT ha fornito spiegazioni, proposte di implementazione e assistenza nella scrittura e nella revisione di parti del codice. Le soluzioni sono state adattate alle esigenze di Goldrake RPG e verificate durante lo sviluppo.
 
-In particolare, è stato usato per:
+In particolare, ChatGPT è stato utilizzato per approfondire e svolgere queste attività.
 
-- configurare Java 25, Gradle, IntelliJ IDEA e Git e chiarire aspetti pratici di Java e Swing;
-- confrontare modi diversi di organizzare il codice e condividere la logica dei duelli tra finestra e terminale;
-- scrivere e rivedere parti del combattimento, dell’interfaccia Swing, del catalogo dei personaggi e del salvataggio XML;
-- diagnosticare problemi di compilazione e preparare ed eseguire verifiche della campagna e del salvataggio;
-- preparare e rivedere la documentazione del progetto.
+- Approfondire aspetti teorici e pratici di Java e Swing e configurare Java 25, Gradle, IntelliJ IDEA e Git.
+- Confrontare alternative di progettazione e organizzazione del codice, condividendo le regole dei duelli tra interfaccia grafica e terminale.
+- Preparare e rivedere parti del combattimento, dell’interfaccia, del catalogo dei personaggi e della persistenza XML.
+- Analizzare errori di compilazione e problemi incontrati durante lo sviluppo ed eseguire verifiche del gioco e dei salvataggi.
+- Generare o modificare sprite e sfondi delle arene e del menu attraverso gli strumenti di generazione di immagini di ChatGPT.
+- Preparare e rivedere la documentazione del progetto.
 
-Gli sprite e gli sfondi delle arene e del menu sono stati creati con uno strumento di generazione di immagini.
-
-La [Wiki del progetto](https://github.com/Saverio-Santinelli/goldrake-rpg/wiki) contiene la relazione con le responsabilità delle classi, le scelte progettuali, l’organizzazione dei dati, gli esempi di estensione e la dichiarazione dettagliata sull’uso dell’IA.
+Per una descrizione più dettagliata dell’uso dell’IA, delle responsabilità delle classi, dell’organizzazione dei dati e degli esempi di estensione è disponibile la [Wiki del progetto](https://github.com/Saverio-Santinelli/goldrake-rpg/wiki).
