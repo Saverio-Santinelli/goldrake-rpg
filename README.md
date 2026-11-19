@@ -83,4 +83,4 @@ In particolare, è stato usato per:
 
 Gli sprite e gli sfondi delle arene e del menu sono stati creati con uno strumento di generazione di immagini.
 
-La Wiki è destinata a raccogliere la dichiarazione dettagliata sull’uso dell’IA.
+La [Wiki del progetto](https://github.com/Saverio-Santinelli/goldrake-rpg/wiki) contiene la relazione con le responsabilità delle classi, le scelte progettuali, l’organizzazione dei dati, gli esempi di estensione e la dichiarazione dettagliata sull’uso dell’IA.
