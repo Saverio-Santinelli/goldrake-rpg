@@ -11,8 +11,11 @@ Saverio Santinelli — Matricola 129548
 Package di riferimento: `it.unicam.cs.mpgc.rpg129548`.
 
 - `model` contiene le regole del duello e i dati dei personaggi.
-- `view` contiene l’interfaccia Swing e quella da terminale.
+- `controller` contiene il punto di avvio `GoldrakeMain`, il controller grafico e la sessione della partita.
+- `view` contiene le schermate e i componenti Swing, separati dalla gestione dei turni e dei salvataggi.
 - `persistence` legge il catalogo XML e gestisce il salvataggio.
+
+Le dipendenze principali sono espresse tramite cinque interfacce: `Personaggio` e `Mossa` nel modello, `ArchivioPartita` per la persistenza, `AzioniGioco` e `VistaGioco` per collegare controller e presentazione. `Combattente`, `Attacco`, `SalvataggioPartita`, `DuelloGrafico` e `FinestraGioco` sono le rispettive implementazioni.
 
 ## Stato del progetto
 
@@ -48,7 +51,7 @@ cd goldrake-rpg
 .\gradlew.bat run
 ```
 
-Il comando `run` apre il menu principale del gioco.
+Il comando `run` avvia `it.unicam.cs.mpgc.rpg129548.controller.GoldrakeMain` e apre il menu principale del gioco. Il task `runConsole` usa lo stesso punto di avvio con l’opzione `--console`.
 
 Il progetto è stato verificato con una prova della campagna completa, inclusi la scelta della tecnica, il caricamento di un salvataggio XML con un attacco già annunciato e un nuovo tentativo dopo una sconfitta.
 
@@ -68,6 +71,10 @@ Le statistiche iniziali di Goldrake e dei tre boss, insieme ai contrattacchi dei
 
 Per giocare dal terminale usa `./gradlew -q runConsole` oppure `.\gradlew.bat -q runConsole` su Windows.
 Premi `1` per il Maglio Perforante, `2` per l’Alabarda Spaziale, `3` per Guardia oppure `0` per uscire. Conferma con Invio.
+
+## Verifiche automatiche
+
+`./gradlew test` (oppure `.\gradlew.bat test` su Windows) esegue i test JUnit del motore, della sessione e del controller. Le verifiche includono entrambe le tecniche premio nella campagna completa, salvataggi XML, compatibilità con il precedente formato Properties, errori di lettura/scrittura e conferme prima di abbandonare i progressi. Il controller viene verificato usando una vista e un archivio di prova che implementano gli stessi contratti delle classi reali.
 
 ## Uso di strumenti di intelligenza artificiale
 
