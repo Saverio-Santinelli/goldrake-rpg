@@ -1,21 +1,36 @@
-package it.unicam.cs.mpgc.rpg129548.view;
+package it.unicam.cs.mpgc.rpg129548.controller;
 
-import it.unicam.cs.mpgc.rpg129548.model.Attacco;
-import it.unicam.cs.mpgc.rpg129548.model.Combattente;
+import it.unicam.cs.mpgc.rpg129548.model.Mossa;
+import it.unicam.cs.mpgc.rpg129548.model.Personaggio;
 import it.unicam.cs.mpgc.rpg129548.model.DuelloGoldrake;
 import it.unicam.cs.mpgc.rpg129548.model.Tappa;
 import it.unicam.cs.mpgc.rpg129548.persistence.CatalogoPersonaggi;
 
 import java.util.Scanner;
 
-public class DuelloConsole {
+/** Punto di avvio: interfaccia grafica oppure duello da terminale con --console. */
+public final class GoldrakeMain {
+
+    private GoldrakeMain() {
+    }
 
     public static void main(String[] args) {
+        if (args.length == 0) {
+            DuelloGrafico.avvia();
+            return;
+        }
+        if (args.length != 1 || !args[0].equals("--console")) {
+            throw new IllegalArgumentException("Uso: GoldrakeMain [--console]");
+        }
+        avviaConsole();
+    }
+
+    private static void avviaConsole() {
         DuelloGoldrake partita = new DuelloGoldrake(CatalogoPersonaggi.carica(), Tappa.LUNA);
-        Combattente goldrake = partita.goldrake();
-        Combattente nemico = partita.nemico();
-        Attacco maglioPerforante = partita.maglioPerforante();
-        Attacco alabardaSpaziale = partita.alabardaSpaziale();
+        Personaggio goldrake = partita.goldrake();
+        Personaggio nemico = partita.nemico();
+        Mossa maglioPerforante = partita.maglioPerforante();
+        Mossa alabardaSpaziale = partita.alabardaSpaziale();
 
         System.out.println("Goldrake RPG - Duello contro il " + nemico.getNome());
         try (Scanner terminale = new Scanner(System.in)) {
@@ -39,7 +54,7 @@ public class DuelloConsole {
                     mostraRisposta(partita.usaGuardia(), goldrake);
                     continue;
                 }
-                Attacco mossa;
+                Mossa mossa;
                 switch (scelta) {
                     case "0" -> {
                         return;
@@ -70,7 +85,7 @@ public class DuelloConsole {
         }
     }
 
-    private static void mostraRisposta(DuelloGoldrake.EsitoTurno turno, Combattente goldrake) {
+    private static void mostraRisposta(DuelloGoldrake.EsitoTurno turno, Personaggio goldrake) {
         turno.rispostaBoss().ifPresent(mossa -> System.out.printf(
                 "Il nemico usa %s (%d danni). A Goldrake restano %d PV.%n",
                 mossa.getNome(), mossa.getDanno(), goldrake.getPuntiVita()));

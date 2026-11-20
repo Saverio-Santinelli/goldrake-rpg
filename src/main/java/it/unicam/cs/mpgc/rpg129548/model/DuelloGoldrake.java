@@ -11,11 +11,11 @@ public final class DuelloGoldrake {
     private final ConfigurazioneDuelli configurazione;
 
     private final Tappa tappa;
-    private final Combattente goldrake;
-    private final Combattente nemico;
+    private final Personaggio goldrake;
+    private final Personaggio nemico;
     private final Combattimento combattimento;
-    private final Attacco maglioPerforante = new Attacco("Maglio Perforante", 10, 0);
-    private final Attacco alabardaSpaziale = new Attacco("Alabarda Spaziale", 30, 20);
+    private final Mossa maglioPerforante = new Attacco("Maglio Perforante", 10, 0);
+    private final Mossa alabardaSpaziale = new Attacco("Alabarda Spaziale", 30, 20);
     private final ConfigurazioneDuelli.Avversario avversario;
     private final Optional<TecnicaPremio> tecnicaPremio;
     // Conta le risposte normali e il turno di carica fino alla prossima mossa speciale.
@@ -53,23 +53,23 @@ public final class DuelloGoldrake {
         return tappa;
     }
 
-    public Combattente goldrake() {
+    public Personaggio goldrake() {
         return goldrake;
     }
 
-    public Combattente nemico() {
+    public Personaggio nemico() {
         return nemico;
     }
 
-    public Attacco maglioPerforante() {
+    public Mossa maglioPerforante() {
         return maglioPerforante;
     }
 
-    public Attacco alabardaSpaziale() {
+    public Mossa alabardaSpaziale() {
         return alabardaSpaziale;
     }
 
-    public EsitoTurno giocaTurno(Attacco mossa) {
+    public EsitoTurno giocaTurno(Mossa mossa) {
         boolean usaPremio = tecnicaPremio.map(premio -> premio.attacco() == mossa).orElse(false);
         if (mossa != maglioPerforante && mossa != alabardaSpaziale && !usaPremio) {
             throw new IllegalArgumentException("Mossa non disponibile per Goldrake");
@@ -107,7 +107,7 @@ public final class DuelloGoldrake {
             return new EsitoTurno(true, Optional.empty());
         }
         boolean speciale = faseBoss == faseSpecialePronto();
-        Attacco mossa = speciale ? avversario.speciale().mossa() : avversario.contrattacco();
+        Mossa mossa = speciale ? avversario.speciale().mossa() : avversario.contrattacco();
         if (guardia) {
             int danno = mossa.getDanno() - mossa.getDanno() / 2;
             mossa = new Attacco(mossa.getNome(), danno, 0);
@@ -203,6 +203,6 @@ public final class DuelloGoldrake {
         }
     }
 
-    public record EsitoTurno(boolean eseguito, Optional<Attacco> rispostaBoss) {
+    public record EsitoTurno(boolean eseguito, Optional<Mossa> rispostaBoss) {
     }
 }

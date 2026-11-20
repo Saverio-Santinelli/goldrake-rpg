@@ -5,13 +5,13 @@ public enum TecnicaPremio {
     TUONO_SPAZIALE(new Attacco("Tuono Spaziale", 45, 30)),
     RAGGIO_ANTIGRAVITA(new Attacco("Raggio Antigravità", 18, 10));
 
-    private final Attacco attacco;
+    private final Mossa attacco;
 
-    TecnicaPremio(Attacco attacco) {
+    TecnicaPremio(Mossa attacco) {
         this.attacco = attacco;
     }
 
-    public Attacco attacco() {
+    public Mossa attacco() {
         return attacco;
     }
 }
