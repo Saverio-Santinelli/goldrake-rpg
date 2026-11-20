@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 /** Legge e scrive lo stato del duello all'inizio di un turno di Goldrake. */
-public final class SalvataggioPartita {
+public final class SalvataggioPartita implements ArchivioPartita {
 
     private final ConfigurazioneDuelli configurazione;
     private final Path fileXml;
@@ -29,6 +29,7 @@ public final class SalvataggioPartita {
         this.filePrecedente = fileXml.resolveSibling("partita.properties");
     }
 
+    @Override
     public void salva(DuelloGoldrake partita) throws IOException {
         if (!partita.inAttesaDiMossa()) {
             throw new IllegalStateException("Il salvataggio richiede un turno di Goldrake in corso");
@@ -59,6 +60,7 @@ public final class SalvataggioPartita {
         }
     }
 
+    @Override
     public DuelloGoldrake carica() throws IOException {
         try {
             Properties dati = leggiSalvataggio();
