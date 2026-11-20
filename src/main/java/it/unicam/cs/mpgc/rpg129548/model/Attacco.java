@@ -3,7 +3,7 @@ package it.unicam.cs.mpgc.rpg129548.model;
 /**
  * Descrive un attacco con danno e costo energetico fissi.
  */
-public class Attacco {
+public final class Attacco implements Mossa {
 
     private final String nome;
     private final int danno;
@@ -36,14 +36,17 @@ public class Attacco {
         this.costoEnergia = costoEnergia;
     }
 
+    @Override
     public String getNome() {
         return nome;
     }
 
+    @Override
     public int getDanno() {
         return danno;
     }
 
+    @Override
     public int getCostoEnergia() {
         return costoEnergia;
     }
@@ -57,7 +60,8 @@ public class Attacco {
      * @throws IllegalArgumentException se un combattente è nullo
      *         o il bersaglio coincide con l'attaccante
      */
-    public boolean esegui(Combattente attaccante, Combattente bersaglio) {
+    @Override
+    public boolean esegui(Personaggio attaccante, Personaggio bersaglio) {
         if (attaccante == null || bersaglio == null) {
             throw new IllegalArgumentException(
                     "Attaccante e bersaglio devono essere presenti");

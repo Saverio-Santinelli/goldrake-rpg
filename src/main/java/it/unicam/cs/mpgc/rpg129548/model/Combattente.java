@@ -3,7 +3,7 @@ package it.unicam.cs.mpgc.rpg129548.model;
 /**
  * Rappresenta un partecipante al combattimento e ne conserva i punti vita.
  */
-public class Combattente {
+public final class Combattente implements Personaggio {
 
     private final String nome;
     private final int puntiVitaMassimi;
@@ -38,17 +38,21 @@ public class Combattente {
         this.energia = energiaMassima;
     }
 
+    @Override
     public String getNome() {
         return nome;
     }
 
+    @Override
     public int getPuntiVitaMassimi() {
         return puntiVitaMassimi;
     }
 
+    @Override
     public int getPuntiVita() {
         return puntiVita;
     }
+    @Override
     public void subisciDanno(int danno) {
         if (danno < 0) {
             throw new IllegalArgumentException("Il danno non può essere negativo");
@@ -56,17 +60,21 @@ public class Combattente {
         puntiVita = Math.max(0, puntiVita - danno);
     }
 
+    @Override
     public boolean isSconfitto() {
         return puntiVita == 0;
     }
+    @Override
     public int getEnergia() {
         return energia;
     }
 
+    @Override
     public int getEnergiaMassima() {
         return energiaMassima;
     }
 
+    @Override
     public boolean consumaEnergia(int costo) {
         if (costo < 0) {
             throw new IllegalArgumentException("Il costo non può essere negativo");
@@ -77,6 +85,7 @@ public class Combattente {
         energia -= costo;
         return true;
     }
+    @Override
     public void ricaricaEnergia(int quantita) {
         if (quantita < 0) {
             throw new IllegalArgumentException("La ricarica non può essere negativa");

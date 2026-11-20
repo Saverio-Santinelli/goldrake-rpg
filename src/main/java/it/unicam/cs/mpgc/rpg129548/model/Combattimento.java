@@ -2,11 +2,11 @@ package it.unicam.cs.mpgc.rpg129548.model;
 
 public class Combattimento {
 
-    private final Combattente primo;
-    private final Combattente secondo;
-    private Combattente diTurno;
+    private final Personaggio primo;
+    private final Personaggio secondo;
+    private Personaggio diTurno;
 
-    public Combattimento(Combattente primo, Combattente secondo) {
+    public Combattimento(Personaggio primo, Personaggio secondo) {
         if (primo == null || secondo == null || primo == secondo) {
             throw new IllegalArgumentException("Servono due combattenti distinti");
         }
@@ -18,7 +18,7 @@ public class Combattimento {
         this.diTurno = primo;
     }
 
-    public Combattente getDiTurno() {
+    public Personaggio getDiTurno() {
         return diTurno;
     }
 
@@ -26,7 +26,7 @@ public class Combattimento {
         return primo.isSconfitto() || secondo.isSconfitto();
     }
 
-    public boolean attacca(Attacco attacco) {
+    public boolean attacca(Mossa attacco) {
         if (attacco == null) {
             throw new IllegalArgumentException("Serve un attacco");
         }
@@ -34,7 +34,7 @@ public class Combattimento {
             return false;
         }
 
-        Combattente bersaglio = diTurno == primo ? secondo : primo;
+        Personaggio bersaglio = diTurno == primo ? secondo : primo;
         if (!attacco.esegui(diTurno, bersaglio)) {
             return false;
         }
